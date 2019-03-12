@@ -1,0 +1,28 @@
+{
+    "type": "interview_info",
+    "permission": "true",
+    "info":{
+        "college_id": "01",
+        "college_name": "北清大学",
+        "site_id": "0001",
+        "site_name": "文史楼110",
+        "periods":[{
+                "order": "01",
+                "start_time": "2019-06-11 09:00:00",
+                "end_time": "2019-06-11 09:00:00",
+                "teacher":[
+                    {
+                        "id":"11990001",
+                        "name": "何炬"
+                    }
+                ],
+                "student":[
+                    {
+                        "id":"11990001",
+                        "name": "宋煦"
+                    }
+                ]
+            }
+        ]
+    }
+}
