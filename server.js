@@ -122,7 +122,7 @@ function validateFromDB(siteId, validateCode){
     return true;
 }
 
-function getInterViewInfoFromDB(siteId, validateCode){
+function getInterviewInfoFromDB(siteId, validateCode){
     // TODO
     return {
         "type": "interview_info",
