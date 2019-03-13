@@ -108,7 +108,7 @@ function parseQueryString(queryString){
 function getInterviewInfo(siteId, validateCode){
     // TODO: validate site
     if (validateFromDB(siteId, validateCode) === true){
-        return getInterViewInfoFromDB(siteId, validateCode);
+        return getInterviewInfoFromDB(siteId, validateCode);
     } else {
         return {
             "type": "interview_info",
@@ -187,12 +187,12 @@ function chooseOrder(siteId, order){
     }
     return falsePermission;
 }
-function checkOrderFromDB(siteId, order){
+function teacherCheckOrderFromDB(siteId, order){
     // TODO
     // if this order hasn't been chosen, return true
     return true;
 }
-function chooseOrderFromDB(siteId, order){
+function teacherChooseOrderToDB(siteId, order){
     // TODO
     // IMPORTANT
     // set current pair relation to (TEACHER WAIT FOR STUDENT)
@@ -278,7 +278,23 @@ function queryOrder(siteId){
     // IMPORTANT:
     // current pair relation must be (TEACHER WAIT FOR STUDENT) 
     // if so, return true
-    return truePermission;
+    return studentQueryOrderFromDB(siteId);
+}
+function studentQueryOrderFromDB(siteId){
+    // TODO
+    // if currently a teacher in this site has chosen an order, return true info
+    return {
+        "type": "site_info",
+        "permission": "true",
+        "info": {
+            "order": "01"
+        }
+    };
+    // OR no teacher has chosen an order, return rejection
+    // return {
+    //     "type": "site_info",
+    //     "permission": "false"
+    // };
 }
 
 /**
