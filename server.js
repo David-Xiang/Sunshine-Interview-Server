@@ -3,7 +3,7 @@ let http = require("http");
 let url = require("url");
 let os = require("os");
 
-let server = http.createServer(function(req, res) {
+let server = http.createServer(async function(req, res) {
     console.log("");
     console.log("Received request " + req.url);
     let pathname = url.parse(req.url).pathname;
@@ -22,37 +22,37 @@ let server = http.createServer(function(req, res) {
             result = {};
             break;
         case "/validate": 
-            result = getInterviewInfo(query["siteid"], query["validatecode"]);
+            result = await getInterviewInfo(query["siteid"], query["validatecode"]);
             break;
         case "/side":
-            result = chooseSide(query["siteid"], query["side"]);
+            result = await chooseSide(query["siteid"], query["side"]);
             break;
         case "/order":
-            result = chooseOrder(query["siteid"], query["order"]);
+            result = await chooseOrder(query["siteid"], query["order"]);
             break;
         case "/teacher":
-            result = teacherSignin(query["siteid"], query["order"], query["id"]);
+            result = await teacherSignin(query["siteid"], query["order"], query["id"]);
             break;
         case "/querystudent":
-            result = queryStudent(query["siteid"], query["order"]);
+            result = await queryStudent(query["siteid"], query["order"]);
             break;
         case "/start":
-            result = start(query["siteid"], query["order"]);
+            result = await start(query["siteid"], query["order"]);
             break;
         case "/end":
-            result = end(query["siteid"], query["order"]);
+            result = await end(query["siteid"], query["order"]);
             break;
         case "/queryorder":
-            result = queryOrder(query["siteid"]);
+            result = await queryOrder(query["siteid"]);
             break;
         case "/student":
-            result = studentSignin(query["siteid"], query["order"], query["id"]);
+            result = await studentSignin(query["siteid"], query["order"], query["id"]);
             break;
         case "/querystart":
-            result = queryStart(query["siteid"], query["order"]);
+            result = await queryStart(query["siteid"], query["order"]);
             break;
         case "/queryend":
-            result = queryEnd(query["siteid"], query["order"]);
+            result = await queryEnd(query["siteid"], query["order"]);
             break;
         default:
             result = { "type": "error", "message": "wrong pathname"}
@@ -81,6 +81,7 @@ let falsePermission = {
     "type": "permission",
     "permission": "false"
 };
+
 function showLocalIP(){
     let ipv4 , hostname;
     hostname=os.hostname();
@@ -92,6 +93,7 @@ function showLocalIP(){
     console.log('Local IP: ' + ipv4);
     console.log('Local host: '+ hostname);
 }
+
 function parseQueryString(queryString){
     let query = {};
     queryString.split("&").forEach(item=>{
@@ -105,10 +107,10 @@ function parseQueryString(queryString){
 /**
  *  /validate?siteid=0001&validatecode=0001
  */
-function getInterviewInfo(siteId, validateCode){
+async function getInterviewInfo(siteId, validateCode){
     // TODO: validate site
-    if (validateFromDB(siteId, validateCode) === true){
-        return getInterviewInfoFromDB(siteId, validateCode);
+    if (await validateFromDB(siteId, validateCode) === true){
+        return await getInterviewInfoFromDB(siteId, validateCode);
     } else {
         return {
             "type": "interview_info",
@@ -117,12 +119,12 @@ function getInterviewInfo(siteId, validateCode){
     }
 }
 
-function validateFromDB(siteId, validateCode){
+async function validateFromDB(siteId, validateCode){
     // TODO
     return true;
 }
 
-function getInterviewInfoFromDB(siteId, validateCode){
+async function getInterviewInfoFromDB(siteId, validateCode){
     // TODO
     return {
         "type": "interview_info",
@@ -161,38 +163,40 @@ function getInterviewInfoFromDB(siteId, validateCode){
 /**
  * /side?siteid=0001&side=teacher
  */
-function chooseSide(siteId, side){
+async function chooseSide(siteId, side){
     if (checkSideFromDB(siteId, side) === true){
         chooseSideToDB(siteId, side);
         return truePermission;
     }
     return falsePermission;
-} 
-function checkSideFromDB(siteId, side){
+}
+
+async function checkSideFromDB(siteId, side){
     // TODO
     // if this side hasn't been chosen, return true
     return true;
 }
-function chooseSideToDB(siteId, side){
+
+async function chooseSideToDB(siteId, side){
     // TODO
 }
 
 /**
  * /order?siteid=0001&order=01 
  */
-function chooseOrder(siteId, order){
-    if (checkOrderFromDB(siteId, order) === true){
-        chooseOrderToDB(siteId, order);
+async function chooseOrder(siteId, order){
+    if (await checkOrderFromDB(siteId, order) === true){
+        await chooseOrderToDB(siteId, order);
         return truePermission;
     }
     return falsePermission;
 }
-function teacherCheckOrderFromDB(siteId, order){
+async function teacherCheckOrderFromDB(siteId, order){
     // TODO
     // if this order hasn't been chosen, return true
     return true;
 }
-function teacherChooseOrderToDB(siteId, order){
+async function teacherChooseOrderToDB(siteId, order){
     // TODO
     // IMPORTANT
     // set current pair relation to (TEACHER WAIT FOR STUDENT)
@@ -201,10 +205,10 @@ function teacherChooseOrderToDB(siteId, order){
 /**
  * /teacher?siteid=0001&order=01&id=11990001
  */
-function teacherSignin(siteId, order, id){
+async function teacherSignin(siteId, order, id){
     // simply discard order information
-    if (checkTeacherSigninFromDB(siteId, id) === true){
-        teacherSigninToDB(siteId, id);
+    if (await checkTeacherSigninFromDB(siteId, id) === true){
+        await teacherSigninToDB(siteId, id);
         return truePermission;
     }
     return falsePermission;
@@ -225,9 +229,9 @@ function teacherSigninToDB(siteId, id){
 /**
  * /querystudent?siteid=0001&order=01
  */
-function queryStudent(siteId, order){
+async function queryStudent(siteId, order){
     let result = {"type": "signin_info"};
-    result.info = queryStudentFromDB(siteId, order);
+    result.info = await queryStudentFromDB(siteId, order);
     return result;
 }
 function queryStudentFromDB(siteId, order){
@@ -251,11 +255,11 @@ function queryStudentFromDB(siteId, order){
 /**
  * /start?siteid=0001&order=01
  */
-function start(siteId, order){
-    startInterviewToDB(siteId, order);
+async function start(siteId, order){
+    await startInterviewToDB(siteId, order);
     return truePermission;    
 }
-function startInterviewToDB(siteId, order){
+async function startInterviewToDB(siteId, order){
     // TODO
 }
 
@@ -263,24 +267,24 @@ function startInterviewToDB(siteId, order){
 /**
  * /end?siteid=0001&order=01
  */
-function end(siteId, order){
-    endInterviewToDB(siteId, order);
+async function end(siteId, order){
+    await endInterviewToDB(siteId, order);
     return truePermission;
 }
-function endInterviewToDB(siteId, order){
+async function endInterviewToDB(siteId, order){
     // TODO
 }
 
 /**
  * /queryorder?siteid=0001
  */
-function queryOrder(siteId){
+async function queryOrder(siteId){
     // IMPORTANT:
     // current pair relation must be (TEACHER WAIT FOR STUDENT) 
     // if so, return true
-    return studentQueryOrderFromDB(siteId);
+    return await studentQueryOrderFromDB(siteId);
 }
-function studentQueryOrderFromDB(siteId){
+async function studentQueryOrderFromDB(siteId){
     // TODO
     // if currently a teacher in this site has chosen an order, return true info
     return {
@@ -300,15 +304,15 @@ function studentQueryOrderFromDB(siteId){
 /**
  * /student?siteid=0001&order=01&id=11990001
  */
-function studentSignin(siteId, order, id){
+async function studentSignin(siteId, order, id){
     // simply discard order information
-    if (checkStudentSigninFromDB(siteId, id) === true){
-        studentSigninToDB(siteId, id);
+    if (await checkStudentSigninFromDB(siteId, id) === true){
+        await studentSigninToDB(siteId, id);
         return truePermission;
     }
     return falsePermission;
 }
-function checkStudentSigninFromDB(siteId, id){
+async function checkStudentSigninFromDB(siteId, id){
     // TODO
     // if this person hasn't been chosen, return true
     // VERY IMPORTANT: 
@@ -317,32 +321,32 @@ function checkStudentSigninFromDB(siteId, id){
     // (student won't sign in repeatedly)
     return true;
 }
-function studentSigninToDB(siteId, id){
+async function studentSigninToDB(siteId, id){
     // TODO
 }
 
 /**
  * /querystart?siteid=0001&order=01
  */
-function queryStart(siteId, order){
-    if (checkStartFromDB(siteId, order) === true){
+async function queryStart(siteId, order){
+    if (await checkStartFromDB(siteId, order) === true){
         return truePermission;
     }
     return falsePermission;
 }
-function checkStartFromDB(siteId, order){
+async function checkStartFromDB(siteId, order){
     return true;
 }
 
 /**
  * /queryend?siteid=0001&order=01
  */
-function queryEnd(siteId, order){
-    if (checkEndFromDB(siteId, order) === true){
+async function queryEnd(siteId, order){
+    if (await checkEndFromDB(siteId, order) === true){
         return truePermission;
     }
     return falsePermission;
 }
-function checkEndFromDB(siteId, order){
+async function checkEndFromDB(siteId, order){
     return true;
 }
