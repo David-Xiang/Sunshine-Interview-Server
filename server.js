@@ -2,6 +2,11 @@
 let http = require("http");
 let url = require("url");
 let os = require("os");
+let fs = require("fs");
+let path = require("path");
+let formidable = require("formidable");
+let dbmodule = require("./db_connect.js");
+let dbconnect = new dbmodule("10.3.99.125");
 
 let server = http.createServer(async function(req, res) {
     console.log("");
@@ -10,13 +15,10 @@ let server = http.createServer(async function(req, res) {
     let query = {};
     if (url.parse(req.url).query !== null)
         query = parseQueryString(url.parse(req.url).query);
-    
-    //console.log("Pathname: " + pathname);
-    //console.log("Query: ");
-    //console.log(query);
 
     res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
     let result = {};
+    let result_invalid = { "type": "error", "message": "wrong pathname"};
     switch(pathname){
         case "/":
             result = {};
@@ -54,8 +56,11 @@ let server = http.createServer(async function(req, res) {
         case "/queryend":
             result = await queryEnd(query["siteid"], query["order"]);
             break;
+        case "/upload":
+            result = handleUpdate(req, res);
+            break;
         default:
-            result = { "type": "error", "message": "wrong pathname"}
+            result = result_invalid;
     }
     if (result.type === "error"){
         console.log("Error: " + result.message);
@@ -73,14 +78,36 @@ showLocalIP();
 /** 
  * Utilities
  */
-let truePermission = {
-    "type": "permission",
-    "permission": "true"
-};
-let falsePermission = {
+let denyPermission = {
     "type": "permission",
     "permission": "false"
 };
+let permission = {
+    "type": "permission",
+    "permission": "true"
+}
+
+function handleUpdate(req){
+    if (req.method.toLowerCase() !== "post")
+        return result_invalid;
+
+    let form = new formidable.IncomingForm();
+    form.encoding = 'utf-8';
+    form.uploadDir = "./origin";
+    form.keepExtensions = true;
+    form.parse(req, function(err, fields, files) {
+        // rename file
+        let oldpath= files.img.path;
+        let newpath = './image/' + files.img.name;
+        
+        console.log("Saving image at " + newpath);
+
+        fs.rename(oldpath, newpath, function(err){
+            if(err){ throw Error("Error in renaming!"); }
+        }); 
+    });
+    return {"type": "upload_info", "status": "success"};
+}
 
 function showLocalIP(){
     let ipv4 , hostname;
@@ -108,98 +135,38 @@ function parseQueryString(queryString){
  *  /validate?siteid=0001&validatecode=0001
  */
 async function getInterviewInfo(siteId, validateCode){
-    // TODO: validate site
-    if (await validateFromDB(siteId, validateCode) === true){
-        return await getInterviewInfoFromDB(siteId, validateCode);
-    } else {
-        return {
-            "type": "interview_info",
-            "permission": "false"
-        };
-    }
-}
-
-async function validateFromDB(siteId, validateCode){
-    // TODO
-    return true;
-}
-
-async function getInterviewInfoFromDB(siteId, validateCode){
-    // TODO
-    return {
-        "type": "interview_info",
-        "permission": "true",
-        "info":{
-            "college_id": "01",
-            "college_name": "北清大学",
-            "site_id": "0001",
-            "site_name": "文史楼110",
-            "periods":[{
-                    "order": "01",
-                    "start_time": "2019-06-11 09:00:00",
-                    "end_time": "2019-06-11 09:00:00",
-                    "teacher":[
-                        {
-                            "id": "11999999",
-                            "name": "东老师"
-                        }
-                    ],
-                    "student":[
-                        {
-                            "id":"11990001",
-                            "name": "宋煦"
-                        },
-                        {
-                            "id":"11990002",
-                            "name": "何炬"
-                        }
-                    ]
-                }
-            ]
-        }
-    };
+    // TODO: 屏蔽已开始场次
+    let res = await dbconnect.getInterViewInfoFromDB(siteId, validateCode);//.catch(error => console.log(error.message));
+    return JSON.parse(res);
 }
 
 /**
  * /side?siteid=0001&side=teacher
  */
 async function chooseSide(siteId, side){
-    if (checkSideFromDB(siteId, side) === true){
-        chooseSideToDB(siteId, side);
-        return truePermission;
+    let str = await dbconnect.checkSideFromDB(siteId, side);
+    let res = JSON.parse(str);
+    
+    // false means side is available
+    if (res.result == 'false'){
+        await dbconnect.chooseSideToDB(siteId, side);
+        return permission;
     }
-    return falsePermission;
-}
-
-async function checkSideFromDB(siteId, side){
-    // TODO
-    // if this side hasn't been chosen, return true
-    return true;
-}
-
-async function chooseSideToDB(siteId, side){
-    // TODO
+    return denyPermission;
 }
 
 /**
  * /order?siteid=0001&order=01 
  */
 async function chooseOrder(siteId, order){
-    if (await checkOrderFromDB(siteId, order) === true){
-        await chooseOrderToDB(siteId, order);
-        return truePermission;
+    let str = await dbconnect.checkOrderFromDB(siteId, order);
+    let res = JSON.parse(str);
+
+    if (res.result  === "false"){
+        await dbconnect.chooseOrderToDB(siteId, order);
+        return permission;
     }
-    return falsePermission;
-}
-async function teacherCheckOrderFromDB(siteId, order){
-    // TODO
-    // if this order hasn't been chosen, return true
-    return true;
-}
-async function teacherChooseOrderToDB(siteId, order){
-    // TODO
-    // IMPORTANT
-    // set current pair relation to (TEACHER WAIT FOR STUDENT)
+    return denyPermission;
 }
 
 /**
@@ -207,23 +174,15 @@ async function teacherChooseOrderToDB(siteId, order){
  */
 async function teacherSignin(siteId, order, id){
     // simply discard order information
-    if (await checkTeacherSigninFromDB(siteId, id) === true){
-        await teacherSigninToDB(siteId, id);
-        return truePermission;
+    // TODO: 考官重复签到，interview info增加signin_before
+    let str = await dbconnect.checkTeacherSigninFromDB(siteId, order, id);
+    let res = JSON.parse(str);
+
+    if (res.result  === "false"){
+        await dbconnect.teacherSigninToDB(siteId, order, id);
+        return permission;
     }
-    return falsePermission;
-}
-function checkTeacherSigninFromDB(siteId, id){
-    // TODO
-    // if this person hasn't been chosen, return true
-    // VERY IMPORTANT: 
-    // we suppose once a teacher has sign in this site in previous order,
-    // he won't need to sign in again
-    // (student won't sign in repeatedly)
-    return true;
-}
-function teacherSigninToDB(siteId, id){
-    // TODO
+    return denyPermission;
 }
 
 /**
@@ -231,36 +190,25 @@ function teacherSigninToDB(siteId, id){
  */
 async function queryStudent(siteId, order){
     let result = {"type": "signin_info"};
-    result.info = await queryStudentFromDB(siteId, order);
+    
+    let str = await dbconnect.queryStudentFromDB(siteId, order);
+    let res = JSON.parse(str);
+
+    result.info = res.info;
     return result;
-}
-function queryStudentFromDB(siteId, order){
-    // return a list of student info consists of id, name, is_absent and img_url
-    return [
-        {
-            "id":"11990001",
-            "name": "何炬",
-            "is_absent": "false",
-            "img_url": "http://10.0.0.1/img/11990001.jpg" 
-        },
-        {
-            "id":"11990002",
-            "name": "宋煦",
-            "is_absent": "true",
-            "img_url": ""
-        }
-    ];
 }
 
 /**
  * /start?siteid=0001&order=01
  */
 async function start(siteId, order){
-    await startInterviewToDB(siteId, order);
-    return truePermission;    
-}
-async function startInterviewToDB(siteId, order){
-    // TODO
+    // simply discard order information
+    let str = await dbconnect.startInterviewToDB(siteId, order);
+    let res = JSON.parse(str);
+    if (res.oldStartTimeRecord === "null"){
+        return permission;
+    }
+    return denyPermission;   
 }
 
 
@@ -268,11 +216,8 @@ async function startInterviewToDB(siteId, order){
  * /end?siteid=0001&order=01
  */
 async function end(siteId, order){
-    await endInterviewToDB(siteId, order);
-    return truePermission;
-}
-async function endInterviewToDB(siteId, order){
-    // TODO
+    await dbconnect.endInterviewToDB(siteId, order);
+    return permission;
 }
 
 /**
@@ -282,71 +227,46 @@ async function queryOrder(siteId){
     // IMPORTANT:
     // current pair relation must be (TEACHER WAIT FOR STUDENT) 
     // if so, return true
-    return await studentQueryOrderFromDB(siteId);
-}
-async function studentQueryOrderFromDB(siteId){
-    // TODO
-    // if currently a teacher in this site has chosen an order, return true info
-    return {
-        "type": "site_info",
-        "permission": "true",
-        "info": {
-            "order": "01"
-        }
-    };
-    // OR no teacher has chosen an order, return rejection
-    // return {
-    //     "type": "site_info",
-    //     "permission": "false"
-    // };
+    let str = await dbconnect.studentQueryOrderFromDB(siteId);
+    let res = JSON.parse(str);
+    return res;
 }
 
 /**
  * /student?siteid=0001&order=01&id=11990001
  */
 async function studentSignin(siteId, order, id){
-    // simply discard order information
-    if (await checkStudentSigninFromDB(siteId, id) === true){
-        await studentSigninToDB(siteId, id);
-        return truePermission;
+    let str = await dbconnect.checkStudentSigninFromDB(siteId, order, id);
+    let res = JSON.parse(str);
+    if (res.result  === "false"){
+        await dbconnect.studentSigninToDB(siteId, order, id);
+        return permission;
     }
-    return falsePermission;
-}
-async function checkStudentSigninFromDB(siteId, id){
-    // TODO
-    // if this person hasn't been chosen, return true
-    // VERY IMPORTANT: 
-    // we suppose once a teacher has sign in this site in previous order,
-    // he won't need to sign in again
-    // (student won't sign in repeatedly)
-    return true;
-}
-async function studentSigninToDB(siteId, id){
-    // TODO
+    return denyPermission;
 }
 
 /**
  * /querystart?siteid=0001&order=01
  */
 async function queryStart(siteId, order){
-    if (await checkStartFromDB(siteId, order) === true){
-        return truePermission;
+    let str = await dbconnect.checkStartFromDB(siteId, order);
+    let res = JSON.parse(str);
+
+    if (res.result === "true"){
+        return permission;
     }
-    return falsePermission;
-}
-async function checkStartFromDB(siteId, order){
-    return true;
+    return denyPermission;
 }
 
 /**
  * /queryend?siteid=0001&order=01
  */
 async function queryEnd(siteId, order){
-    if (await checkEndFromDB(siteId, order) === true){
-        return truePermission;
+    let str = await dbconnect.checkEndFromDB(siteId, order);
+    let res = JSON.parse(str);
+
+    if (res.result === "true"){
+        return permission;
     }
-    return falsePermission;
-}
-async function checkEndFromDB(siteId, order){
-    return true;
+    return denyPermission;
 }
