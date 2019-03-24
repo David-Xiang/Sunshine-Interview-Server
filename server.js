@@ -6,17 +6,16 @@ let fs = require("fs");
 let path = require("path");
 let formidable = require("formidable");
 let dbmodule = require("./db_connect.js");
-let dbconnect = new dbmodule("10.3.99.125");
+let dbconnect = new dbmodule("10.3.97.116");
 
 let server = http.createServer(async function(req, res) {
-    console.log("");
     console.log("Received request " + req.url);
     let pathname = url.parse(req.url).pathname;
     let query = {};
     if (url.parse(req.url).query !== null)
         query = parseQueryString(url.parse(req.url).query);
 
-    res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
+    
     let result = {};
     let result_invalid = { "type": "error", "message": "wrong pathname"};
     switch(pathname){
@@ -57,16 +56,18 @@ let server = http.createServer(async function(req, res) {
             result = await queryEnd(query["siteid"], query["order"]);
             break;
         case "/upload":
-            result = handleUpdate(req, res);
+            result = handleUpload(req, res);
             break;
+        case "/download":
+            handleDownload(req, res, query["filename"], "./images/");
+            return;
         default:
             result = result_invalid;
     }
-    if (result.type === "error"){
+    if (result.type === "error")
         console.log("Error: " + result.message);
-        res.end();
-        return;
-    }
+    
+    res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
     res.write(JSON.stringify(result));
     res.end();
 });
@@ -87,7 +88,7 @@ let permission = {
     "permission": "true"
 }
 
-function handleUpdate(req){
+function handleUpload(req){
     if (req.method.toLowerCase() !== "post")
         return result_invalid;
 
@@ -98,15 +99,24 @@ function handleUpdate(req){
     form.parse(req, function(err, fields, files) {
         // rename file
         let oldpath= files.img.path;
-        let newpath = './image/' + files.img.name;
+        let newpath = __dirname+'/images/' + files.img.name;
         
         console.log("Saving image at " + newpath);
 
         fs.rename(oldpath, newpath, function(err){
             if(err){ throw Error("Error in renaming!"); }
         }); 
+        //dbconnect.setImgURLTomDB(id, '/images/' + files.img.name);
     });
     return {"type": "upload_info", "status": "success"};
+}
+
+function handleDownload(req, res, fileName, filePath){
+    res.writeHead(200,{  
+        'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
+        'Content-Disposition': 'attachment; filename=' + fileName, //告诉浏览器这是一个需要下载的文件  
+    });
+    fs.createReadStream(filePath+fileName).pipe(res);
 }
 
 function showLocalIP(){
@@ -178,7 +188,7 @@ async function teacherSignin(siteId, order, id){
     let str = await dbconnect.checkTeacherSigninFromDB(siteId, order, id);
     let res = JSON.parse(str);
 
-    if (res.result  === "false"){
+    if (res.result  === "true"){
         await dbconnect.teacherSigninToDB(siteId, order, id);
         return permission;
     }
@@ -238,7 +248,7 @@ async function queryOrder(siteId){
 async function studentSignin(siteId, order, id){
     let str = await dbconnect.checkStudentSigninFromDB(siteId, order, id);
     let res = JSON.parse(str);
-    if (res.result  === "false"){
+    if (res.result  === "true"){
         await dbconnect.studentSigninToDB(siteId, order, id);
         return permission;
     }
