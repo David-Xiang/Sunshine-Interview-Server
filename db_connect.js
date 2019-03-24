@@ -1068,60 +1068,92 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.getStudentImgURLFromDB = async function (id)/* fun23 */
+	this.getImgURLFromDB = async function (id)/* fun23 */
 	{
-		// [Xu] Exp: getStudentImgURLFromDB("11000001");
-		if (showDetails) console.log("[Start getStudentImgURLFromDB('" + id + "')]");
+		// [Xu] Exp: getImgURLFromDB("11000001");
+		if (showDetails) console.log("[Start getImgURLFromDB('" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
-		res.functionName = "getStudentImgURLFromDB('" + id + "')]";
-		let [rows, fields] = await connection.execute("SELECT ImgURL FROM student where StudentID = " + id + ";");
-		if (!rows[0]) res.legal = "false"; // if illegal
+		res.functionName = "getImgURLFromDB('" + id + "')]";
+		let [rows, fields] = await connection.execute("SELECT s.ImgURL FROM student as s where s.StudentID = " + id + ";");
+		if (!rows[0])
+		{
+			let [rows1, fields1] = await connection.execute("SELECT t.ImgURL FROM teacher as t where t.TeacherID = " + id + ";");
+			if (!rows1[0])
+			{
+				res.legal = "false"; // if illegal
+			}
+			else
+			{
+				res.legal = "true";
+				res.side = "teacher";
+				res.result = rows1[0].ImgURL;
+			}
+		}
 		else // if legal
 		{
 			res.legal = "true";
+			res.side = "student";
 			res.result = rows[0].ImgURL;
 		}
 		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
 		await connection.end();
-		if (showDetails) console.log("[End getStudentImgURLFromDB('" + id + "')]\n");
+		if (showDetails) console.log("[End getImgURLFromDB('" + id + "')]\n");
 		return content;
 		/********************** Example **********************
 		{
-			"functionName": "getStudentImgURLFromDB('11000001')]",
+			"functionName": "getImgURLFromDB('11990001')]",
 			"legal": "true",
-			"result": "http://ILoveStudy.com/img/11/1.jpg"
+			"side": "teacher",
+			"result": null
 		}
 		********************** Example **********************/
 	}
 
-	this.setStudentImgURLToDB = async function (id, url)/* fun24 */
+	this.setImgURLToDB = async function (id, url)/* fun24 */
 	{
-		// [Xu] Exp: setStudentImgURLTomDB("11000001", "http://ILoveStudy.com/img/11/1.jpg");
-		if (showDetails) console.log("[Start setStudentImgURLToDB('" + id + "', '" + url + "')]");
+		// [Xu] Exp: setImgURLTomDB("11000001", "http://ILoveStudy.com/img/11/1.jpg");
+		if (showDetails) console.log("[Start setImgURLToDB('" + id + "', '" + url + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
-		res.functionName = "setStudentImgURLToDB('" + id + "', '" + url + "')]";
-		let [rows, fields] = await connection.execute("SELECT ImgURL FROM student where StudentID = " + id + ";");
-		if (!rows[0]) res.legal = "false"; // if illegal
+		res.functionName = "setImgURLToDB('" + id + "', '" + url + "')]";
+		let [rows, fields] = await connection.execute("SELECT s.ImgURL FROM student as s where s.StudentID = " + id + ";");
+		if (!rows[0])
+		{
+			let [rows1, fields1] = await connection.execute("SELECT t.ImgURL FROM teacher as t where t.TeacherID = " + id + ";");
+			if (!rows1[0])
+			{
+				res.legal = "false"; // if illegal
+			}
+			else
+			{
+				res.legal = "true";
+				res.side = "teacher";
+				res.oldImgURL = rows1[0].ImgURL;
+				res.newImgURL = url;
+				await connection.execute("UPDATE teacher SET ImgURL = '" + url + "' where TeacherID = " + id + ";");
+			}
+		}
 		else // if legal
 		{
 			res.legal = "true";
+			res.side = "student";
 			res.oldImgURL = rows[0].ImgURL;
 			res.newImgURL = url;
+			await connection.execute("UPDATE student SET ImgURL = '" + url + "' where StudentID = " + id + ";");
 		}
-		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE student SET ImgURL = '" + url + "' where StudentID = " + id + ";");
 		await connection.end();
-		if (showDetails) console.log("[End setStudentImgURLToDB('" + id + "', '" + url + "')]\n");
+		if (showDetails) console.log("[End setImgURLToDB('" + id + "', '" + url + "')]\n");
 		return content;
 		/********************** Example **********************
 		{
-			"functionName": "setStudentImgURLToDB('11000001', 'http://ILoveStudy.com/img/11/1.jpg')]",
+			"functionName": "getImgURLFromDB('11990001')]",
 			"legal": "true",
-			"oldImgURL": "http://IHateStudy.com/img/11/1.jpg",
+			"side": "teacher",
+			"oldImgURL": null,
 			"newImgURL": "http://ILoveStudy.com/img/11/1.jpg"
 		}
 		********************** Example **********************/
@@ -1129,31 +1161,48 @@ module.exports = function(host){
 
 	this.resetStudentImgURLToDB = async function (id)/* fun25 */
 	{
-		// [Xu] Exp: resetStudentImgURLToDB("11000001");
-		if (showDetails) console.log("[Start resetStudentImgURLToB('" + id + "')]");
+		// [Xu] Exp: resetImgURLTomDB("11000001", "http://ILoveStudy.com/img/11/1.jpg");
+		if (showDetails) console.log("[Start resetImgURLToDB('" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
-		let defaulturl = "http://ILoveStudy.com/img/11/1.jpg";
-		res.functionName = "resetStudentImgURLToDB('" + id + "')]";
-		let [rows, fields] = await connection.execute("SELECT ImgURL FROM student where StudentID = " + id + ";");
-		if (!rows[0]) res.legal = "false"; // if illegal
+		let defaultURL = "http://ILoveStudy.com/img/11/1.jpg";
+		res.functionName = "resetImgURLToDB('" + id + "')]";
+		let [rows, fields] = await connection.execute("SELECT s.ImgURL FROM student as s where s.StudentID = " + id + ";");
+		if (!rows[0])
+		{
+			let [rows1, fields1] = await connection.execute("SELECT t.ImgURL FROM teacher as t where t.TeacherID = " + id + ";");
+			if (!rows1[0])
+			{
+				res.legal = "false"; // if illegal
+			}
+			else
+			{
+				res.legal = "true";
+				res.side = "teacher";
+				res.oldImgURL = rows1[0].ImgURL;
+				res.newImgURL = defaultURL;
+				await connection.execute("UPDATE teacher SET ImgURL = '" + defaultURL + "' where TeacherID = " + id + ";");
+			}
+		}
 		else // if legal
 		{
 			res.legal = "true";
+			res.side = "student";
 			res.oldImgURL = rows[0].ImgURL;
-			res.newImgURL = defaulturl;
+			res.newImgURL = defaultURL;
+			await connection.execute("UPDATE student SET ImgURL = '" + defaultURL + "' where StudentID = " + id + ";");
 		}
-		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE student SET ImgURL = '" + defaulturl + "' where StudentID = " + id + ";");
 		await connection.end();
-		if (showDetails) console.log("[End resetStudentImgURLToDB('" + id + "')]\n");
+		if (showDetails) console.log("[End resetImgURLToDB('" + id + "')]");
 		return content;
 		/********************** Example **********************
 		{
-			"functionName": "resetStudentImgURLToDB('11000001')]",
+			"functionName": "resetImgURLToDB('11000001')]",
 			"legal": "true",
-			"oldImgURL": "http://Sleep.com/img/11/1.jpg",
+			"side": "student",
+			"oldImgURL": "http://ILoveStudy.com/img/11/1.jpg",
 			"newImgURL": "http://ILoveStudy.com/img/11/1.jpg"
 		}
 		********************** Example **********************/
