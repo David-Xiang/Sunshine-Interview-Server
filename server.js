@@ -27,6 +27,7 @@ let illegalRequest = {
 }
 
 let server = http.createServer(async function(req, res) {
+    decodeURIComponent(url);
     console.log("Received request " + req.url);
     let pathname = url.parse(req.url).pathname;
     let query = {};
@@ -144,7 +145,7 @@ function parseQueryString(queryString){
     let query = {};
     queryString.split("&").forEach(item=>{
         let key = item.split("=")[0];
-        let value = item.split("=")[1];
+        let value = decodeURI(item.split("=")[1]);
         query[key] = value;
     });
     return query;
