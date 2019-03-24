@@ -216,7 +216,7 @@ module.exports = function(host){
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
 		res.functionName = "checkOrderFromDB('" + siteId + "','" + order + "')]";
-		let [rows, fields] = await connection.execute("SELECT Chosen FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT Chosen FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		if (!rows[0]) res.legal = "false"; // if illegal
 		else // if legal
 		{
@@ -248,7 +248,7 @@ module.exports = function(host){
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
 		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "chooseOrderToDB('" + siteId + "','" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -262,7 +262,7 @@ module.exports = function(host){
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE interview SET Chosen = 1, ChosenTime = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		await connection.execute("UPDATE interview SET Chosen = 1, ChosenTime = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End chooseOrderToDB('" + siteId + "','" + order + "')]\n");
 		return content;
@@ -286,7 +286,7 @@ module.exports = function(host){
 		// [Xu] Exp: resetOrderFromDB("1102", "2");
 		if (showDetails) console.log("[Start resetOrderFromDB('" + siteId + "','" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "resetOrderFromDB('" + siteId + "','" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -300,7 +300,7 @@ module.exports = function(host){
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE interview SET Chosen = 0, ChosenTime = null where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		await connection.execute("UPDATE interview SET Chosen = 0, ChosenTime = null where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End resetOrderFromDB('" + siteId + "','" + order + "')]\n");
 		return content;
@@ -325,11 +325,11 @@ module.exports = function(host){
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
 		res.functionName = "teacherSigninToDB('" + siteId + "', '" + order + "', '" + id + "')";
-		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 		if (!rows[0]) res.legal = "false"; // if illegal
 		else // if legal
 		{
-			await connection.execute("UPDATE teacher_takes SET Signin = 1 where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+			await connection.execute("UPDATE teacher_takes SET Signin = 1 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 			res.legal = "true";
 			res.oldSignin = rows[0].Signin;
 			res.newSignin = "true";
@@ -358,11 +358,11 @@ module.exports = function(host){
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
 		res.functionName = "teacherSignoutToDB('" + siteId + "', '" + order + "', '" + id + "')";
-		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 		if (!rows[0]) res.legal = "false"; // if illegal
 		else // if legal
 		{
-			await connection.execute("UPDATE teacher_takes SET Signin = 0 where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+			await connection.execute("UPDATE teacher_takes SET Signin = 0 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 			res.legal = "true";
 			res.oldSignin = rows[0].Signin;
 			res.newSignin = "false";
@@ -391,11 +391,11 @@ module.exports = function(host){
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
 		res.functionName = "studentSigninToDB('" + siteId + "', '" + order + "', '" + id + "')";
-		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and StudentID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and StudentID = " + id + ";");
 		if (!rows[0]) res.legal = "false"; // if illegal
 		else // if legal
 		{
-			await connection.execute("UPDATE student_takes SET Signin = 1 where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and StudentID = " + id + ";");
+			await connection.execute("UPDATE student_takes SET Signin = 1 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and StudentID = " + id + ";");
 			res.legal = "true";
 			res.oldSignin = rows[0].Signin;
 			res.newSignin = "true";
@@ -424,11 +424,11 @@ module.exports = function(host){
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
 		res.functionName = "studentSignoutToDB('" + siteId + "', '" + order + "', '" + id + "')";
-		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and StudentID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and StudentID = " + id + ";");
 		if (!rows[0]) res.legal = "false"; // if illegal
 		else // if legal
 		{
-			await connection.execute("UPDATE student_takes SET Signin = 0 where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and StudentID = " + id + ";");
+			await connection.execute("UPDATE student_takes SET Signin = 0 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and StudentID = " + id + ";");
 			res.legal = "true";
 			res.oldSignin = rows[0].Signin;
 			res.newSignin = "false";
@@ -456,7 +456,7 @@ module.exports = function(host){
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
 		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT StartTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT StartTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "startInterviewToDB('" + siteId + "', '" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -468,7 +468,7 @@ module.exports = function(host){
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE interview SET StartTimeRecord = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		await connection.execute("UPDATE interview SET StartTimeRecord = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End startInterviewToDB('" + siteId + "', '" + order + "')]\n");
 		return content;
@@ -490,7 +490,7 @@ module.exports = function(host){
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
 		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT EndTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT EndTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "endInterviewToDB('" + siteId + "', '" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -502,7 +502,7 @@ module.exports = function(host){
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE interview SET EndTimeRecord = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		await connection.execute("UPDATE interview SET EndTimeRecord = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End endInterviewToDB('" + siteId + "', '" + order + "')]\n");
 		return content;
@@ -522,7 +522,7 @@ module.exports = function(host){
 		if (showDetails) console.log("[Start resetTimesOfInterviewToDB('" + siteId + "', '" + order + "')]");
 		let defaultTime = "null";
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT StartTimeRecord, EndTimeRecord, Chosen, ChosenTime FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT StartTimeRecord, EndTimeRecord, Chosen, ChosenTime FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "resetTimesOfInterviewToDB('" + siteId + "', '" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -540,7 +540,7 @@ module.exports = function(host){
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE interview SET StartTimeRecord = " + defaultTime + ", EndTimeRecord = " + defaultTime + ", Chosen = 0, ChosenTime = " + defaultTime + " where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		await connection.execute("UPDATE interview SET StartTimeRecord = " + defaultTime + ", EndTimeRecord = " + defaultTime + ", Chosen = 0, ChosenTime = " + defaultTime + " where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End resetTimesOfInterviewToDB('" + siteId + "', '" + order + "')]\n");
 		return content;
@@ -566,7 +566,7 @@ module.exports = function(host){
 		// [Xu] Exp: checkStartFromDB("1101", "2");
 		if (showDetails) console.log("[Start checkStartFromDB('" + siteId + "', '" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT StartTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT StartTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "checkStartFromDB('" + siteId + "', '" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -598,7 +598,7 @@ module.exports = function(host){
 		// [Xu] Exp: checkEndFromDB("1101", "2");
 		if (showDetails) console.log("[Start checkEndFromDB('" + siteId + "', '" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT EndTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("SELECT EndTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "checkEndFromDB('" + siteId + "', '" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -644,7 +644,7 @@ module.exports = function(host){
 		// [Xu] Exp: checkTeacherSigninFromDB("1101", "2", "11990005");
 		if (showDetails) console.log("[Start checkTeacherSigninFromDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 		let res = {};
 		res.functionName = "checkTeacherSigninFromDB('" + siteId + "', '" + order + "', '" + id + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -682,7 +682,7 @@ module.exports = function(host){
 		// [Xu] Exp: checkStudentSigninFromDB("1101", "2", "11000001");
 		if (showDetails) console.log("[Start checkStudentSigninFromDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and StudentID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and StudentID = " + id + ";");
 		let res = {};
 		res.functionName = "checkStudentSigninFromDB('" + siteId + "', '" + order + "', '" + id + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -722,7 +722,7 @@ module.exports = function(host){
 		//if (showDetails) console.log("[Start checkTeacherSigninPreviousInterviewFromDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let previousOrder = ((+order) - 1) + "";
-		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 		let res = {};
 		res.functionName = "checkTeacherSigninPreviousInterviewFromDB('" + siteId + "', '" + order + "', '" + id + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -736,7 +736,7 @@ module.exports = function(host){
 			}
 			else
 			{
-				let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = " + previousOrder + " and TeacherID = " + id + ";");
+				let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + previousOrder + "' and TeacherID = " + id + ";");
 				if (!rows[0])
 				{
 					res.reason = "The teacher doesn't need to take the previous interview.";
@@ -754,7 +754,7 @@ module.exports = function(host){
 						res.reason = "The teacher has taken the previous interview.";
 						res.done = "Now I've helped him(her) signing in this interview.";
 						res.result = "true";
-						await connection.execute("UPDATE teacher_takes SET Signin = 1 where InterviewSiteID = " + siteId + " and OrderNumber = " + order + " and TeacherID = " + id + ";");
+						await connection.execute("UPDATE teacher_takes SET Signin = 1 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
 					}
 				}
 			}
@@ -780,7 +780,7 @@ module.exports = function(host){
 		// [Xu] Exp: queryStudentFromDB("1101", "2");
 		if (showDetails) console.log("[Start queryStudentFromDB('" + siteId + "', '" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("select p.StudentID as id, p.StudentName as 'name', (1 - q.Signin) as is_absent, p.ImgURL as img_url from student as p, student_takes as q where p.StudentID = q.StudentID and q.InterviewSiteID = " + siteId + " and q.OrderNumber = " + order + ";");
+		let [rows, fields] = await connection.execute("select p.StudentID as id, p.StudentName as 'name', (1 - q.Signin) as is_absent, p.ImgURL as img_url from student as p, student_takes as q where p.StudentID = q.StudentID and q.InterviewSiteID = " + siteId + " and q.OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "queryStudentFromDB('" + siteId + "', '" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -868,7 +868,7 @@ module.exports = function(host){
 				for (let period in rows2)
 				{
 					//console.log(rows2[period]);
-					let [rows3, fields3] = await connection.execute("SELECT b.TeacherID as 'id', b.TeacherName as 'name' FROM teacher_takes as a, teacher as b where a.TeacherID = b.TeacherID and a.InterviewSiteID = " + siteId + " and a.OrderNumber = " + rows2[period].order + ";");
+					let [rows3, fields3] = await connection.execute("SELECT b.TeacherID as 'id', b.TeacherName as 'name' FROM teacher_takes as a, teacher as b where a.TeacherID = b.TeacherID and a.InterviewSiteID = " + siteId + " and a.OrderNumber = '" + rows2[period].order + "';");
 					rows2[period].teacher = rows3;
 					for (let oneteacher in rows3)
 					{
@@ -877,7 +877,7 @@ module.exports = function(host){
 						//console.log(ask_j);
 						rows3[oneteacher].signin_before = ask_j.result;
 					}
-					let [rows4, fields4] = await connection.execute("SELECT b.StudentID as 'id', b.StudentName as 'name' FROM student_takes as a, student as b where a.StudentID = b.StudentID and a.InterviewSiteID = " + siteId + " and a.OrderNumber = " + rows2[period].order + ";");
+					let [rows4, fields4] = await connection.execute("SELECT b.StudentID as 'id', b.StudentName as 'name' FROM student_takes as a, student as b where a.StudentID = b.StudentID and a.InterviewSiteID = " + siteId + " and a.OrderNumber = '" + rows2[period].order + "';");
 					rows2[period].student = rows4;
 				}
 				res.info.periods = rows2;
@@ -1204,6 +1204,33 @@ module.exports = function(host){
 			"side": "student",
 			"oldImgURL": "http://ILoveStudy.com/img/11/1.jpg",
 			"newImgURL": "http://ILoveStudy.com/img/11/1.jpg"
+		}
+		********************** Example **********************/
+	}
+	
+	this.cleanData = async function ()/* fun26 */
+	{
+		// [Xu] Exp: cleanAll();
+		if (showDetails) console.log("[Start cleanData()");
+		let connection = await mysql.createConnection(myconnect);
+		await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0;");
+		await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null, Chosen = 0, ChosenTime = null;");
+		await connection.execute("update teacher_takes set signin = 0;");
+		await connection.execute("update student_takes set signin = 0;");
+		let res = {};
+		res.functionName = "cleanData()";
+		res.legal = "true";
+		res.result = "true";
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End cleanData()");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "cleanData()",
+			"legal": "true",
+			"result": "true"
 		}
 		********************** Example **********************/
 	}
