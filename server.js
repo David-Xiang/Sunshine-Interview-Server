@@ -27,13 +27,11 @@ let illegalRequest = {
 }
 
 let server = http.createServer(async function(req, res) {
-    decodeURIComponent(url);
     console.log("Received request " + req.url);
     let pathname = url.parse(req.url).pathname;
     let query = {};
     if (url.parse(req.url).query !== null)
         query = parseQueryString(url.parse(req.url).query);
-
     
     let result = {};
     switch(pathname){
@@ -79,6 +77,10 @@ let server = http.createServer(async function(req, res) {
         case "/download":
             await handleDownload(req, res, query["filename"], "./images/");
             return;
+        case "/reset":
+            // Backdoor: reset database
+            // DELETE BEFORE RELEASE!!!
+            await dbconnect.cleanData();
         default:
             result = illegalRequest;
     }
@@ -282,7 +284,7 @@ async function queryOrder(siteId){
  * /student?siteid=0001&order=01&id=11990001
  */
 async function studentSignin(siteId, order, id){
-    if (!siteId || !side || !id)
+    if (!siteId || !order || !id)
         return illegalRequest;
 
     let str = await dbconnect.checkStudentSigninFromDB(siteId, order, id);
