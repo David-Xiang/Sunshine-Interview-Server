@@ -5,7 +5,7 @@ let os = require("os");
 let fs = require("fs");
 let formidable = require("formidable");
 let dbmodule = require("./db_connect.js");
-let dbconnect = new dbmodule("10.3.97.116");
+let dbconnect = new dbmodule("10.2.147.123");
 
 /** 
  * Utilities
@@ -157,7 +157,7 @@ async function getInterviewInfo(siteId, validateCode){
     // TODO: 屏蔽已开始场次
     if(!siteId || !validateCode)
         return illegalRequest;
-        
+
     let resStr = await dbconnect.getInterViewInfoFromDB(siteId, validateCode);
     let res = JSON.parse(resStr);
      

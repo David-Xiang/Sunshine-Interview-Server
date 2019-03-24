@@ -1,0 +1,391 @@
+/********************** Run This **********************
+async function main()
+{
+	let res;
+	if (hostfromtxt) myconnect.host = await fs.readFileSync('./host.txt', 'utf8');
+	res = await validateFromDB("1101", "1101"); /* fun01 */
+	res = await chooseSideToDB("1101", "teacher"); /* fun02 */
+	res = await resetSideToDB("1101", "teacher"); /* fun03 */
+	res = await checkSideFromDB("1101", "teacher"); /* fun04 */
+	res = await checkOrderFromDB("1101", "2"); /* fun05 */
+	res = await chooseOrderFromDB("1102", "2"); /* fun06 */
+	res = await resetOrderFromDB("1102", "2"); /* fun07 */
+	res = await teacherSigninToDB("1101", "1", "11990005"); /* fun08 */
+	res = await teacherSignoutToDB("1101", "2", "11990005"); /* fun09 */
+	res = await studentSigninToDB("1101", "2", "11000001"); /* fun10 */
+	res = await studentSignoutToDB("1101", "2", "11000001"); /* fun11 */
+	res = await startInterviewToDB("1101", "2"); /* fun12 */
+	res = await endInterviewToDB("1101", "2"); /* fun13 */
+	res = await resetTimesOfInterviewToDB("1101", "2"); /* fun14 */
+	res = await checkStartFromDB("1101", "2"); /* fun15 */
+	res = await checkEndFromDB("1101", "2"); /* fun16 */
+	res = await checkTeacherSigninFromDB("1101", "2", "11990005"); /* fun17 */
+	res = await checkStudentSigninFromDB("1101", "2", "11000001"); /* fun18 */
+	res = await checkTeacherSigninPreviousInterviewFromDB("1101", "2", "11990005"); /* fun19 */
+	res = await queryStudentFromDB("1101", "2"); /* fun20 */
+	res = await getInterViewInfoFromDB("1102", "1102"); /* fun21 */
+	res = await studentQueryOrderFromDB("1101"); /* fun22 */
+	res = await getStudentImgURLFromDB("11000001"); /* fun23*/
+	res = await setStudentImgURLToDB("11000001", "http://ILoveStudy.com/img/11/1.jpg"); /* fun24 */
+	res = await resetStudentImgURLToDB("11000001"); /* fun25 */
+	//console.log(res);
+}
+main();
+********************** Run This **********************/
+
+
+D:\Nodejs\setup\workspace>node try2.js
+[Start validateFromDB('1101','1101')]
+{
+		"functionName": "validateFromDB('1101','1101')",
+		"legal": "true",
+		"result": "true"
+}
+[End validateFromDB('1101','1101')]
+
+[Start chooseSideToDB('1101','teacher')]
+{
+		"functionName": "chooseSideToDB('1101','teacher')]",
+		"legal": "true",
+		"side": "teacher"
+}
+[End chooseSideToDB('1101','teacher')]
+
+[Start resetSideToDB('1101','teacher')]
+{
+		"functionName": "resetSideToDB('1101','teacher')]",
+		"legal": "true",
+		"side": "teacher"
+}
+[End resetSideToDB('1101','teacher')]
+
+[Start checkSideFromDB('1101','teacher')]
+{
+		"functionName": "checkSideFromDB('1101','teacher')]",
+		"legal": "true",
+		"side": "teacher",
+		"result": "false"
+}
+[End checkSideFromDB('1101','teacher')]
+
+[Start checkOrderFromDB('1101','2')]
+{
+		"functionName": "checkOrderFromDB('1101','2')]",
+		"legal": "true",
+		"result": "false"
+}
+[End checkOrderFromDB('1101','2')]
+
+[Start chooseOrderFromDB('1102','2')]
+{
+		"functionName": "chooseOrderFromDB('1102','2')",
+		"legal": "true",
+		"oldChosen": "false",
+		"newChosen": "true",
+		"oldChosenTime": "null",
+		"newChosenTime": "2019-03-21 10:46:23"
+}
+[End chooseOrderFromDB('1102','2')]
+
+[Start resetOrderFromDB('1102','2')]
+{
+		"functionName": "resetOrderFromDB('1102','2')",
+		"legal": "true",
+		"oldChosen": "true",
+		"newChosen": "false",
+		"oldChosenTime": "2019-03-21 10:46:23",
+		"newChosenTime": "null"
+}
+[End resetOrderFromDB('1102','2')]
+
+[Start teacherSigninToDB('1101', '1', '11990005')]
+{
+		"functionName": "teacherSigninToDB('1101', '1', '11990005')",
+		"legal": "true",
+		"oldSignin": "true",
+		"newSignin": "true"
+}
+[End teacherSigninToDB('1101', '1', '11990005')]
+
+[Start teacherSignoutToDB('1101', '2', '11990005')]
+{
+		"functionName": "teacherSignoutToDB('1101', '2', '11990005')",
+		"legal": "true",
+		"oldSignin": "true",
+		"newSignin": "false"
+}
+[End teacherSignoutToDB('1101', '2', '11990005')]
+
+[Start studentSigninToDB('1101', '2', '11000001')]
+{
+		"functionName": "studentSigninToDB('1101', '2', '11000001')",
+		"legal": "true",
+		"oldSignin": "false",
+		"newSignin": "true"
+}
+[End studentSigninToDB('1101', '2', '11000001')]
+
+[Start studentSignoutToDB('1101', '2', '11000001')]
+{
+		"functionName": "studentSignoutToDB('1101', '2', '11000001')",
+		"legal": "true",
+		"oldSignin": "true",
+		"newSignin": "false"
+}
+[End studentSignoutToDB('1101', '2', '11000001')]
+
+[Start startInterviewToDB('1101', '2')]
+{
+		"functionName": "startInterviewToDB('1101', '2')",
+		"legal": "true",
+		"oldStartTimeRecord": "null",
+		"newStartTimeRecord": "2019-03-21 10:46:23"
+}
+[End startInterviewToDB('1101', '2')]
+
+[Start endInterviewToDB('1101', '2')]
+{
+		"functionName": "endInterviewToDB('1101', '2')",
+		"legal": "true",
+		"oldEndTimeRecord": "null",
+		"newEndTimeRecord": "2019-03-21 10:46:23"
+}
+[End endInterviewToDB('1101', '2')]
+
+[Start resetTimesOfInterviewToDB('1101', '2')]
+{
+		"functionName": "resetTimesOfInterviewToDB('1101', '2')",
+		"legal": "true",
+		"oldStartTimeRecord": "2019-03-21 10:46:23",
+		"newStartTimeRecord": "null",
+		"oldEndTimeRecord": "2019-03-21 10:46:23",
+		"newEndTimeRecord": "null",
+		"oldChosen": "false",
+		"newChosen": "false",
+		"oldChosenTime": "null",
+		"newChosenTime": "null"
+}
+[End resetTimesOfInterviewToDB('1101', '2')]
+
+[Start checkStartFromDB('1101', '2')]
+{
+		"functionName": "checkStartFromDB('1101', '2')",
+		"legal": "true",
+		"startTimeRecord": "null",
+		"result": "false"
+}
+[End checkStartFromDB('1101', '2')]
+
+[Start checkEndFromDB('1101', '2')]
+{
+		"functionName": "checkEndFromDB('1101', '2')",
+		"legal": "true",
+		"endTimeRecord": "null",
+		"result": "false"
+}
+[End checkEndFromDB('1101', '2')]
+
+[Start checkTeacherSigninFromDB('1101', '2', '11990005')]
+{
+		"functionName": "checkTeacherSigninFromDB('1101', '2', '11990005')",
+		"legal": "true",
+		"signin": "false",
+		"result": "true"
+}
+[End checkTeacherSigninFromDB('1101', '2', '11990005')]
+
+[Start checkStudentSigninFromDB('1101', '2', '11000001')]
+{
+		"functionName": "checkStudentSigninFromDB('1101', '2', '11000001')",
+		"legal": "true",
+		"signin": "false",
+		"result": "true"
+}
+[End checkStudentSigninFromDB('1101', '2', '11000001')]
+
+[Start checkTeacherSigninPreviousInterviewFromDB('1101', '2', '11990005')]
+{
+		"functionName": "checkTeacherSigninPreviousInterviewFromDB('1101', '2', '11990005')",
+		"legal": "true",
+		"reason": "The teacher has taken the previous interview.",
+		"done": "Now I've helped him(her) signing in this interview.",
+		"result": "true"
+}
+[End checkTeacherSigninPreviousInterviewFromDB('1101', '2', '11990005')]
+
+[Start queryStudentFromDB('1101', '2')]
+{
+		"functionName": "queryStudentFromDB('1101', '2')",
+		"legal": "true",
+		"data": [
+				{
+						"id": 11000001,
+						"name": "赵汐悦",
+						"is_absent": "false",
+						"img_url": "http://ILoveStudy.com/img/11/1.jpg"
+				},
+				{
+						"id": 11000005,
+						"name": "李昕睿",
+						"is_absent": "false",
+						"img_url": "http://ILoveStudy.com/img/11/1.jpg"
+				},
+				{
+						"id": 11000009,
+						"name": "张晨皓",
+						"is_absent": "false",
+						"img_url": "http://ILoveStudy.com/img/11/1.jpg"
+				},
+				{
+						"id": 11000013,
+						"name": "白读书",
+						"is_absent": "false",
+						"img_url": "http://ILoveStudy.com/img/11/1.jpg"
+				},
+				{
+						"id": 11000017,
+						"name": "陈一铭",
+						"is_absent": "false",
+						"img_url": "http://ILoveStudy.com/img/11/1.jpg"
+				}
+		]
+}
+[End queryStudentFromDB('1101', '2')]
+
+[Start getInterViewInfoFromDB('1102', '1102')]
+{
+		"functionName": "getInterViewInfoFromDB('1102', '1102')",
+		"legal": "true",
+		"type": "interview_info",
+		"permission": "true",
+		"info": {
+				"college_id": 11,
+				"college_name": "北京可爱大学",
+				"site_id": 1102,
+				"site_name": "燕园楼816教室",
+				"periods": [
+						{
+								"order": 1,
+								"start_time": "2019-06-11 09:00:00",
+								"end_time": "2019-06-11 09:50:00",
+								"teacher": [
+										{
+												"id": 11990002,
+												"name": "张建龙"
+										},
+										{
+												"id": 11990006,
+												"name": "陈鸿玉"
+										},
+										{
+												"id": 11990010,
+												"name": "林妍"
+										}
+								],
+								"student": [
+										{
+												"id": 11000002,
+												"name": "赵子曦"
+										},
+										{
+												"id": 11000006,
+												"name": "王靖雯"
+										},
+										{
+												"id": 11000010,
+												"name": "张梓恒"
+										},
+										{
+												"id": 11000014,
+												"name": "魏民谣"
+										},
+										{
+												"id": 11000018,
+												"name": "杨芊慧"
+										}
+								]
+						},
+						{
+								"order": 2,
+								"start_time": "2019-06-11 10:00:00",
+								"end_time": "2019-06-11 10:50:00",
+								"teacher": [
+										{
+												"id": 11990003,
+												"name": "蔡文化"
+										},
+										{
+												"id": 11990007,
+												"name": "杨文锦"
+										},
+										{
+												"id": 11990011,
+												"name": "谢子琦"
+										}
+								],
+								"student": [
+										{
+												"id": 11000003,
+												"name": "李明泽"
+										},
+										{
+												"id": 11000007,
+												"name": "王琛杰"
+										},
+										{
+												"id": 11000011,
+												"name": "吴所谓"
+										},
+										{
+												"id": 11000015,
+												"name": "陈逸轩"
+										},
+										{
+												"id": 11000019,
+												"name": "杨宏亮"
+										}
+								]
+						}
+				]
+		}
+}
+[End getInterViewInfoFromDB('1102', '1102')]
+
+[Start studentQueryOrderFromDB('1101')]
+{
+		"functionName": "studentQueryOrderFromDB('1101')",
+		"legal": "true",
+		"type": "site_info",
+		"permission": "false",
+		"nowTime": "2019-03-21 10:46:23",
+		"closestChosenTime": "2019-03-21 02:02:04",
+		"maxInterval_minute": "10",
+		"factInterval_minute": "524.316"
+}
+[End studentQueryOrderFromDB('1101')]
+
+[Start getStudentImgURLFromDB('11000001')]
+{
+		"functionName": "getStudentImgURLFromDB('11000001')]",
+		"legal": "true",
+		"result": "http://ILoveStudy.com/img/11/1.jpg"
+}
+[End getStudentImgURLFromDB('11000001')]
+
+[Start setStudentImgURLToDB('11000001', 'http://ILoveStudy.com/img/11/1.jpg')]
+{
+		"functionName": "setStudentImgURLToDB('11000001', 'http://ILoveStudy.com/img/11/1.jpg')]",
+		"legal": "true",
+		"oldImgURL": "http://ILoveStudy.com/img/11/1.jpg",
+		"newImgURL": "http://ILoveStudy.com/img/11/1.jpg"
+}
+[End setStudentImgURLToDB('11000001', 'http://ILoveStudy.com/img/11/1.jpg')]
+
+[Start resetStudentImgURLToB('11000001')]
+{
+		"functionName": "resetStudentImgURLToDB('11000001')]",
+		"legal": "true",
+		"oldImgURL": "http://ILoveStudy.com/img/11/1.jpg",
+		"newImgURL": "http://ILoveStudy.com/img/11/1.jpg"
+}
+[End resetStudentImgURLToDB('11000001')]
