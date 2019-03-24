@@ -3,10 +3,28 @@ let http = require("http");
 let url = require("url");
 let os = require("os");
 let fs = require("fs");
-let path = require("path");
 let formidable = require("formidable");
 let dbmodule = require("./db_connect.js");
 let dbconnect = new dbmodule("10.3.97.116");
+
+/** 
+ * Utilities
+ */
+let denyPermission = {
+    "type": "permission",
+    "permission": "false",
+    "error": "validation"
+};
+let permission = {
+    "type": "permission",
+    "permission": "true",
+    "error": null
+}
+let illegalRequest = {
+    "type": "permission",
+    "permission": "false", 
+    "error": "request"
+}
 
 let server = http.createServer(async function(req, res) {
     console.log("Received request " + req.url);
@@ -17,10 +35,9 @@ let server = http.createServer(async function(req, res) {
 
     
     let result = {};
-    let result_invalid = { "type": "error", "message": "wrong pathname"};
     switch(pathname){
         case "/":
-            result = {};
+            result = illegalRequest;
             break;
         case "/validate": 
             result = await getInterviewInfo(query["siteid"], query["validatecode"]);
@@ -56,16 +73,14 @@ let server = http.createServer(async function(req, res) {
             result = await queryEnd(query["siteid"], query["order"]);
             break;
         case "/upload":
-            result = handleUpload(req, res);
+            result = handleUpload(req, res, query["id"]);
             break;
         case "/download":
-            handleDownload(req, res, query["filename"], "./images/");
+            await handleDownload(req, res, query["filename"], "./images/");
             return;
         default:
-            result = result_invalid;
+            result = illegalRequest;
     }
-    if (result.type === "error")
-        console.log("Error: " + result.message);
     
     res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
     res.write(JSON.stringify(result));
@@ -76,21 +91,11 @@ server.listen(80);
 console.log("Server starts on port " + 80);
 showLocalIP();
 
-/** 
- * Utilities
- */
-let denyPermission = {
-    "type": "permission",
-    "permission": "false"
-};
-let permission = {
-    "type": "permission",
-    "permission": "true"
-}
-
-function handleUpload(req){
+function handleUpload(req, res, id){
+    if (!id)
+        return illegalRequest;
     if (req.method.toLowerCase() !== "post")
-        return result_invalid;
+        return illegalRequest;
 
     let form = new formidable.IncomingForm();
     form.encoding = 'utf-8';
@@ -106,12 +111,16 @@ function handleUpload(req){
         fs.rename(oldpath, newpath, function(err){
             if(err){ throw Error("Error in renaming!"); }
         }); 
-        //dbconnect.setImgURLTomDB(id, '/images/' + files.img.name);
+        dbconnect.setImgURLToDB(id, '/images/' + files.img.name);
     });
     return {"type": "upload_info", "status": "success"};
 }
 
-function handleDownload(req, res, fileName, filePath){
+async function handleDownload(req, res, fileName, filePath){
+    if (!fileName)
+        return illegalRequest;
+    if (! await fs.existsSync(filePath+fileName))
+        return illegalRequest;
     res.writeHead(200,{  
         'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
         'Content-Disposition': 'attachment; filename=' + fileName, //告诉浏览器这是一个需要下载的文件  
@@ -146,14 +155,22 @@ function parseQueryString(queryString){
  */
 async function getInterviewInfo(siteId, validateCode){
     // TODO: 屏蔽已开始场次
-    let res = await dbconnect.getInterViewInfoFromDB(siteId, validateCode);//.catch(error => console.log(error.message));
-    return JSON.parse(res);
+    if(!siteId || !validateCode)
+        return illegalRequest;
+        
+    let resStr = await dbconnect.getInterViewInfoFromDB(siteId, validateCode);
+    let res = JSON.parse(resStr);
+     
+    return res;
 }
 
 /**
  * /side?siteid=0001&side=teacher
  */
 async function chooseSide(siteId, side){
+    if (!siteId || !side)
+        return illegalRequest;
+
     let str = await dbconnect.checkSideFromDB(siteId, side);
     let res = JSON.parse(str);
     
@@ -169,6 +186,9 @@ async function chooseSide(siteId, side){
  * /order?siteid=0001&order=01 
  */
 async function chooseOrder(siteId, order){
+    if (!siteId || !order)
+        return illegalRequest;
+
     let str = await dbconnect.checkOrderFromDB(siteId, order);
     let res = JSON.parse(str);
 
@@ -183,6 +203,9 @@ async function chooseOrder(siteId, order){
  * /teacher?siteid=0001&order=01&id=11990001
  */
 async function teacherSignin(siteId, order, id){
+    if (!siteId || !order || !id)
+        return illegalRequest;
+
     // simply discard order information
     // TODO: 考官重复签到，interview info增加signin_before
     let str = await dbconnect.checkTeacherSigninFromDB(siteId, order, id);
@@ -199,6 +222,9 @@ async function teacherSignin(siteId, order, id){
  * /querystudent?siteid=0001&order=01
  */
 async function queryStudent(siteId, order){
+    if (!siteId || !order)
+        return illegalRequest;
+
     let result = {"type": "signin_info"};
     
     let str = await dbconnect.queryStudentFromDB(siteId, order);
@@ -212,6 +238,9 @@ async function queryStudent(siteId, order){
  * /start?siteid=0001&order=01
  */
 async function start(siteId, order){
+    if (!siteId || !order)
+        return illegalRequest;
+
     // simply discard order information
     let str = await dbconnect.startInterviewToDB(siteId, order);
     let res = JSON.parse(str);
@@ -226,6 +255,9 @@ async function start(siteId, order){
  * /end?siteid=0001&order=01
  */
 async function end(siteId, order){
+    if (!siteId || !order)
+        return illegalRequest;
+
     await dbconnect.endInterviewToDB(siteId, order);
     return permission;
 }
@@ -237,6 +269,9 @@ async function queryOrder(siteId){
     // IMPORTANT:
     // current pair relation must be (TEACHER WAIT FOR STUDENT) 
     // if so, return true
+    if (!siteId)
+        return illegalRequest;
+
     let str = await dbconnect.studentQueryOrderFromDB(siteId);
     let res = JSON.parse(str);
     return res;
@@ -246,6 +281,9 @@ async function queryOrder(siteId){
  * /student?siteid=0001&order=01&id=11990001
  */
 async function studentSignin(siteId, order, id){
+    if (!siteId || !side || !id)
+        return illegalRequest;
+
     let str = await dbconnect.checkStudentSigninFromDB(siteId, order, id);
     let res = JSON.parse(str);
     if (res.result  === "true"){
@@ -259,6 +297,9 @@ async function studentSignin(siteId, order, id){
  * /querystart?siteid=0001&order=01
  */
 async function queryStart(siteId, order){
+    if (!siteId || !order)
+        return illegalRequest;
+
     let str = await dbconnect.checkStartFromDB(siteId, order);
     let res = JSON.parse(str);
 
@@ -272,6 +313,9 @@ async function queryStart(siteId, order){
  * /queryend?siteid=0001&order=01
  */
 async function queryEnd(siteId, order){
+    if (!siteId || !order)
+        return illegalRequest;
+
     let str = await dbconnect.checkEndFromDB(siteId, order);
     let res = JSON.parse(str);
 
