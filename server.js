@@ -27,7 +27,8 @@ let illegalRequest = {
 }
 
 let server = http.createServer(async function(req, res) {
-    console.log("Received request " + req.url);
+    console.log(new Date().toLocaleString() + ": Received request " + req.url);
+
     let pathname = url.parse(req.url).pathname;
     let query = {};
     if (url.parse(req.url).query !== null)
@@ -252,7 +253,6 @@ async function start(siteId, order){
     }
     return denyPermission;   
 }
-
 
 /**
  * /end?siteid=0001&order=01
