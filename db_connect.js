@@ -90,7 +90,7 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.chooseSideToDB  =async function (siteId, side)/* fun02 */
+	this.chooseSideToDB = async function (siteId, side)/* fun02 */
 	{
 		// [Xu] side MUST be "teacher", "TEACHER", "student" or "STUDENT"
 		// [Xu] Exp: chooseSideToDB("1101", "teacher");
@@ -1141,7 +1141,7 @@ module.exports = function(host){
 			res.side = "student";
 			res.oldImgURL = rows[0].ImgURL;
 			res.newImgURL = url;
-			await connection.execute("UPDATE student SET ImgURL = '" + url + "' where StudentID = " + id + ";");
+			await connection.execute("UPDATE student SET ImgURL = '" + url + "', UpdateTime = " + nowTime_db + " where StudentID = " + id + ";");
 		}
 		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
