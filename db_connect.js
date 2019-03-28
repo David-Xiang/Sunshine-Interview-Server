@@ -1132,7 +1132,7 @@ module.exports = function(host){
 				res.side = "teacher";
 				res.oldImgURL = rows1[0].ImgURL;
 				res.newImgURL = url;
-				await connection.execute("UPDATE teacher SET ImgURL = '" + url + "' where TeacherID = " + id + ";");
+				await connection.execute("UPDATE teacher SET ImgURL = '" + url + "', UpdateTime = " + nowTime_db + " where TeacherID = " + id + ";");
 			}
 		}
 		else // if legal
