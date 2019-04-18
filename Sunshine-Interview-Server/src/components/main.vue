@@ -34,7 +34,7 @@
         </form>
 
         <a href="#">忘记密码</a><br>
-        <a href="#" class="text-center">注册新账号</a>
+        <a href="../../register.html" class="text-center">注册新账号</a>
 
       </div>
       <!-- /.login-box-body -->
