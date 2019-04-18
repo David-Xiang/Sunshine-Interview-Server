@@ -2,7 +2,7 @@
 Copyright		: Sunshine
 Author			: Xu
 Startdate		: 2019-03-19 22:19:12
-Finishdate		: 2019-03-21 02:40:07
+Finishdate		: 2019-04-19 00:46:07
 Description		: May codes no BUGs
 **************************************************/
 
@@ -19,9 +19,11 @@ module.exports = function(host){
 	};
 	const mysql = require("mysql2/promise");
 	const fs = require("fs");
+	const os = require("os");
 	const showDetails = true;
 	const showJson = true;
-	const hostfromtxt = true;
+	const hostfromtxt = false;
+	const logUpdate = true;
 
 	Date.prototype.Format = function(fmt)
 	{
@@ -38,6 +40,27 @@ module.exports = function(host){
 		for (let k in o)
 			if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
 		return fmt;
+	}
+
+	function getIPAdress()/* Just a tool */
+	{  
+		let interfaces = os.networkInterfaces();
+		let tmpAddress;
+		for(let devName in interfaces)
+		{
+			let iface = interfaces[devName];
+			for(let i = 0; i < iface.length; i++)
+			{
+				let alias = iface[i];
+				if(alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+				{
+					tmpAddress = alias.address;
+					//console.log(tmpAddress);
+					if (alias.address.substr(0, 3) != '192') return alias.address;
+				}
+			}
+		}
+		return tmpAddress;
 	}
 
 	function tracer_funTrueFalseDate(key, value)/* Just a tool */
@@ -62,9 +85,27 @@ module.exports = function(host){
 		return value;
 	}
 
-	this.validateFromDB = async function (siteId, validateCode)/* fun01 */
+	this.logUpdateToDB = async function (collegeId, functionName)/* Just a tool */
+	{
+		if (!logUpdate) return;
+		myconnect.database = "sunshine_" + collegeId;
+		let nowTime = new Date();
+		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
+		let nowIP = getIPAdress();
+		let connection = await mysql.createConnection(myconnect);
+		await connection.execute("INSERT INTO logdata(LogID, LogTime, FunctionName, IP) VALUES (null," + nowTime_db + ", '" + functionName + "', '" + nowIP + "');");
+		let [rows, fields] = await connection.execute("SELECT LogCount from info where CollegeID = " + collegeId + ";");
+		let count = rows[0].LogCount;
+		count++;
+		await connection.execute("UPDATE info SET LogCount = " + count + " where CollegeID = " + collegeId + ";");
+		await connection.end();
+	}
+
+	this.validateFromDB = async function (collegeId, siteId, validateCode)/* fun01 */
 	{
 		// [Xu] Exp: validateFromDB("1101", "1101");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "validateFromDB");
 		if (showDetails) console.log("[Start validateFromDB('" + siteId + "','" + validateCode + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("SELECT Password FROM interviewsite where InterviewSiteID = " + siteId + ";");
@@ -90,8 +131,10 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.chooseSideToDB = async function (siteId, side)/* fun02 */
+	this.chooseSideToDB = async function (collegeId, siteId, side)/* fun02 */
 	{
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "chooseSideToDB");
 		// [Xu] side MUST be "teacher", "TEACHER", "student" or "STUDENT"
 		// [Xu] Exp: chooseSideToDB("1101", "teacher");
 		if (showDetails) console.log("[Start chooseSideToDB('" + siteId + "','" + side + "')]");
@@ -125,10 +168,12 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.resetSideToDB = async function (siteId, side)/* fun03 */ /* Contrary to fun02: chooseSideToDB */
+	this.resetSideToDB = async function (collegeId, siteId, side)/* fun03 */ /* Contrary to fun02: chooseSideToDB */
 	{
 		// [Xu] side MUST be "teacher", "TEACHER", "student" or "STUDENT"
 		// [Xu] Exp: resetSideToDB("1101", "teacher");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "resetSideToDB");
 		if (showDetails) console.log("[Start resetSideToDB('" + siteId + "','" + side + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -160,11 +205,13 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkSideFromDB = async function (siteId, side)/* fun04 */
+	this.checkSideFromDB = async function (collegeId, siteId, side)/* fun04 */
 	{
 		// if this side hasn't been chosen, return true
 		// [Xu] side MUST be "teacher", "TEACHER", "student" or "STUDENT"
 		// [Xu] Exp: checkSideFromDB("1101", "teacher");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkSideFromDB");
 		if (showDetails) console.log("[Start checkSideFromDB('" + siteId + "','" + side + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -207,11 +254,13 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkOrderFromDB = async function (siteId, order)/* fun05 */
+	this.checkOrderFromDB = async function (collegeId, siteId, order)/* fun05 */
 	{
 		// if this order hasn't been chosen, return true
 		// [Xu] order is also a string like "1", "3"
 		// [Xu] Exp: checkOrderFromDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkOrderFromDB");
 		if (showDetails) console.log("[Start checkOrderFromDB('" + siteId + "','" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -237,12 +286,14 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.chooseOrderToDB = async function (siteId, order)/* fun06 */
+	this.chooseOrderToDB = async function (collegeId, siteId, order)/* fun06 */
 	{
 		// IMPORTANT
 		// set current pair relation to (TEACHER WAIT FOR STUDENT)
 		// [Xu] order is also a string like "1", "3"
 		// [Xu] Exp: chooseOrderToDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "chooseOrderToDB");
 		if (showDetails) console.log("[Start chooseOrderToDB('" + siteId + "','" + order + "')]");
 		let nowTime = new Date();
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
@@ -278,12 +329,14 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.resetOrderFromDB = async function (siteId, order)/* fun07 */ /* Contrary to fun06: chooseOrderToDB */
+	this.resetOrderFromDB = async function (collegeId, siteId, order)/* fun07 */ /* Contrary to fun06: chooseOrderToDB */
 	{
 		// IMPORTANT
 		// set current pair relation to (TEACHER WAIT FOR STUDENT)
 		// [Xu] order is also a string like "1", "3"
 		// [Xu] Exp: resetOrderFromDB("1102", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "resetOrderFromDB");
 		if (showDetails) console.log("[Start resetOrderFromDB('" + siteId + "','" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("SELECT Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
@@ -316,11 +369,13 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.teacherSigninToDB = async function (siteId, order, id)/* fun08 */
+	this.teacherSigninToDB = async function (collegeId, siteId, order, id)/* fun08 */
 	{
 		// [Xu] id is also a string like "11990001", "12990002"
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: teacherSigninToDB("1101", "2", "11990005");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "teacherSigninToDB");
 		if (showDetails) console.log("[Start teacherSigninToDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -349,11 +404,13 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.teacherSignoutToDB = async function (siteId, order, id)/* fun09 */
+	this.teacherSignoutToDB = async function (collegeId, siteId, order, id)/* fun09 */
 	{
 		// [Xu] id is also a string like "11990001", "12990002"
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: teacherSignoutToDB("1101", "2", "11990005");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "teacherSignoutToDB");
 		if (showDetails) console.log("[Start teacherSignoutToDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -382,11 +439,13 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.studentSigninToDB = async function (siteId, order, id)/* fun10 */
+	this.studentSigninToDB = async function (collegeId, siteId, order, id)/* fun10 */
 	{
 		// [Xu] id is also a string like "11990001", "12990002"
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: studentSigninToDB("1101", "2", "11000001");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "studentSigninToDB");
 		if (showDetails) console.log("[Start studentSigninToDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -415,11 +474,13 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.studentSignoutToDB = async function (siteId, order, id)/* fun11 */
+	this.studentSignoutToDB = async function (collegeId, siteId, order, id)/* fun11 */
 	{
 		// [Xu] id is also a string like "11990001", "12990002"
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: studentSignoutToDB("1101", "2", "11000001");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "studentSignoutToDB");
 		if (showDetails) console.log("[Start studentSignoutToDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -448,9 +509,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.startInterviewToDB = async function (siteId, order)/* fun12 */
+	this.startInterviewToDB = async function (collegeId, siteId, order)/* fun12 */
 	{
 		// [Xu] Exp: startInterviewToDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "startInterviewToDB");
 		if (showDetails) console.log("[Start startInterviewToDB('" + siteId + "', '" + order + "')]");
 		let nowTime = new Date();
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
@@ -482,9 +545,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.endInterviewToDB = async function (siteId, order)/* fun13 */
+	this.endInterviewToDB = async function (collegeId, siteId, order)/* fun13 */
 	{
 		// [Xu] Exp: endInterviewToDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "endInterviewToDB");
 		if (showDetails) console.log("[Start endInterviewToDB('" + siteId + "', '" + order + "')]");
 		let nowTime = new Date();
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
@@ -516,9 +581,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.resetTimesOfInterviewToDB = async function (siteId, order)/* fun14 */ /* Set StartTimeRecord, EndTimeRecord, ChosenTime to null and Set Chosen to 0(default value)*/
+	this.resetTimesOfInterviewToDB = async function (collegeId, siteId, order)/* fun14 */ /* Set StartTimeRecord, EndTimeRecord, ChosenTime to null and Set Chosen to 0(default value)*/
 	{
 		// [Xu] Exp: resetTimesOfInterviewToDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "resetTimesOfInterviewToDB");
 		if (showDetails) console.log("[Start resetTimesOfInterviewToDB('" + siteId + "', '" + order + "')]");
 		let defaultTime = "null";
 		let connection = await mysql.createConnection(myconnect);
@@ -560,10 +627,12 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkStartFromDB = async function (siteId, order)/* fun15 */
+	this.checkStartFromDB = async function (collegeId, siteId, order)/* fun15 */
 	{
 		// [Xu] order is also a string like "1", "3"
 		// [Xu] Exp: checkStartFromDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkStartFromDB");
 		if (showDetails) console.log("[Start checkStartFromDB('" + siteId + "', '" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("SELECT StartTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
@@ -592,10 +661,12 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkEndFromDB = async function (siteId, order)/* fun16 */
+	this.checkEndFromDB = async function (collegeId, siteId, order)/* fun16 */
 	{
 		// [Xu] order is also a string like "1", "3"
 		// [Xu] Exp: checkEndFromDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkEndFromDB");
 		if (showDetails) console.log("[Start checkEndFromDB('" + siteId + "', '" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("SELECT EndTimeRecord FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
@@ -624,7 +695,7 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkTeacherSigninFromDB = async function (siteId, order, id)/* fun17 */
+	this.checkTeacherSigninFromDB = async function (collegeId, siteId, order, id)/* fun17 */
 	{
 		// if this person hasn't been chosen, return true
 		// VERY IMPORTANT: 
@@ -642,6 +713,8 @@ module.exports = function(host){
 		// [Xu] id is also a string like "11990001", "12990002"
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: checkTeacherSigninFromDB("1101", "2", "11990005");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkTeacherSigninFromDB");
 		if (showDetails) console.log("[Start checkTeacherSigninFromDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
@@ -670,7 +743,7 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkStudentSigninFromDB = async function (siteId, order, id)/* fun18 */
+	this.checkStudentSigninFromDB = async function (collegeId, siteId, order, id)/* fun18 */
 	{
 		// if this person hasn't been chosen, return true
 		// VERY IMPORTANT: 
@@ -680,6 +753,8 @@ module.exports = function(host){
 		// [Xu] id is also a string like "11990001", "12990002"
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: checkStudentSigninFromDB("1101", "2", "11000001");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkStudentSigninFromDB");
 		if (showDetails) console.log("[Start checkStudentSigninFromDB('" + siteId + "', '" + order + "', '" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("SELECT Signin FROM student_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and StudentID = " + id + ";");
@@ -708,7 +783,7 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.checkTeacherSigninPreviousInterviewFromDB = async function(siteId, order, id)/* fun19 */ /* VERY IMPORTANT */
+	this.checkTeacherSigninPreviousInterviewFromDB = async function(collegeId, siteId, order, id)/* fun19 */ /* VERY IMPORTANT */
 	{
 		// <IMPORTANT>
 		// [Xu] if one teacher has signed in the previous interview,
@@ -720,6 +795,8 @@ module.exports = function(host){
 		// [Xu] ids for students are like "XX00XXXX", while "XX99XXXX" for teachers
 		// [Xu] Exp: checkTeacherSigninPreviousInterviewFromDB("1101", "2", "11990005");
 		//if (showDetails) console.log("[Start checkTeacherSigninPreviousInterviewFromDB('" + siteId + "', '" + order + "', '" + id + "')]");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "checkTeacherSigninPreviousInterviewFromDB");
 		let connection = await mysql.createConnection(myconnect);
 		let previousOrder = ((+order) - 1) + "";
 		let [rows, fields] = await connection.execute("SELECT Signin FROM teacher_takes where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "' and TeacherID = " + id + ";");
@@ -774,10 +851,12 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.queryStudentFromDB = async function (siteId, order)/* fun20 */
+	this.queryStudentFromDB = async function (collegeId, siteId, order)/* fun20 */
 	{
 		// return a list of student info consists of id, name, is_absent and img_url
 		// [Xu] Exp: queryStudentFromDB("1101", "2");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "queryStudentFromDB");
 		if (showDetails) console.log("[Start queryStudentFromDB('" + siteId + "', '" + order + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows, fields] = await connection.execute("select p.StudentID as id, p.StudentName as 'name', (1 - q.Signin) as is_absent, p.ImgURL as img_url from student as p, student_takes as q where p.StudentID = q.StudentID and q.InterviewSiteID = " + siteId + " and q.OrderNumber = '" + order + "';");
@@ -834,9 +913,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.getInterViewInfoFromDB = async function (siteId, validateCode)/* fun21 */
+	this.getInterViewInfoFromDB = async function (collegeId, siteId, validateCode)/* fun21 */
 	{
 		// [Xu] Exp: getInterViewInfoFromDB("1102", "1102");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "getInterViewInfoFromDB");
 		if (showDetails) console.log("[Start getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows0, fields0] = await connection.execute("SELECT Password FROM interviewsite where InterviewSiteID = " + siteId + ";");
@@ -991,7 +1072,7 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.studentQueryOrderFromDB = async function (siteId)/* fun22 */
+	this.studentQueryOrderFromDB = async function (collegeId, siteId)/* fun22 */
 	{
 		// if currently a teacher in this site has chosen an order, return true info
 		//return {
@@ -1007,6 +1088,8 @@ module.exports = function(host){
 		//	 "permission": "false"
 		/// };
 		// [Xu] Exp: studentQueryOrderFromDB("1101");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "studentQueryOrderFromDB");
 		let maxInterval = 180;
 		let nowTime = new Date();
 		let nowTime_seconds = nowTime.Format("hhmmss");
@@ -1068,9 +1151,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.getImgURLFromDB = async function (id)/* fun23 */
+	this.getImgURLFromDB = async function (collegeId, id)/* fun23 */
 	{
 		// [Xu] Exp: getImgURLFromDB("11000001");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "getImgURLFromDB");
 		if (showDetails) console.log("[Start getImgURLFromDB('" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -1111,9 +1196,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.setImgURLToDB = async function (id, url)/* fun24 */
+	this.setImgURLToDB = async function (collegeId, id, url)/* fun24 */
 	{
 		// [Xu] Exp: setImgURLTomDB("11000001", "http://ILoveStudy.com/img/11/1.jpg");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "setImgURLToDB");
 		if (showDetails) console.log("[Start setImgURLToDB('" + id + "', '" + url + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -1159,9 +1246,11 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.resetStudentImgURLToDB = async function (id)/* fun25 */
+	this.resetStudentImgURLToDB = async function (collegeId, id)/* fun25 */
 	{
 		// [Xu] Exp: resetImgURLTomDB("11000001", "http://ILoveStudy.com/img/11/1.jpg");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "resetStudentImgURLToDB");
 		if (showDetails) console.log("[Start resetImgURLToDB('" + id + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -1207,10 +1296,12 @@ module.exports = function(host){
 		}
 		********************** Example **********************/
 	}
-	
-	this.cleanData = async function ()/* fun26 */
+
+	this.cleanData = async function (collegeId)/* fun26 */
 	{
 		// [Xu] Exp: cleanAll();
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "cleanData");
 		if (showDetails) console.log("[Start cleanData()");
 		let connection = await mysql.createConnection(myconnect);
 		await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0;");
@@ -1234,39 +1325,400 @@ module.exports = function(host){
 		}
 		********************** Example **********************/
 	}
+
+	this.newSchemaToDB = async function(collegeId)/* fun27 */
+	{
+		// [Xu] Exp: newSchemaToDB("66");
+		let connection;
+		if (showDetails) console.log("[Start newSchemaToDB('" + collegeId + "')]");
+		let res = {};
+		res.functionName = "newSchemaToDB('" + collegeId + "')";
+		if (+collegeId < 0 || +collegeId > 99)
+		{
+			res.legal = "false";
+			res.reason = "The collegeId is illegal.";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			connection = await mysql.createConnection(myconnect);
+			await connection.execute("create schema sunshine_" + collegeId + ";");
+			await connection.end();
+			myconnect.database = "sunshine_" + collegeId;
+			connection = await mysql.createConnection(myconnect);
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`interview` (" +
+				"`InterviewID` int(10) unsigned NOT NULL AUTO_INCREMENT," +
+				"`InterviewSiteID` int(10) unsigned DEFAULT NULL," +
+				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`StartTime` datetime NOT NULL," +
+				"`EndTime` datetime NOT NULL," +
+				"`StartTimeRecord` datetime DEFAULT NULL," +
+				"`EndTimeRecord` datetime DEFAULT NULL," +
+				"`Chosen` int(11) DEFAULT 0," +
+				"`ChosenTime` datetime DEFAULT NULL," +
+				"PRIMARY KEY (`InterviewID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`interviewsite` (" +
+				"`InterviewSiteID` int(10) unsigned NOT NULL AUTO_INCREMENT," +
+				"`CollegeID` int(10) unsigned DEFAULT NULL," +
+				"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`InterviewSite` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+				"`Password` varchar(45) DEFAULT NULL," +
+				//"`RegisterID` int(10) unsigned DEFAULT NULL," +
+				//"`RegisterName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`TeacherSideChosen` int(11) DEFAULT 0," +
+				"`StudentSideChosen` int(11) DEFAULT 0," +
+				"PRIMARY KEY (`InterviewSiteID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`student` (" +
+				"`StudentID` int(10) unsigned NOT NULL," +
+				"`CollegeID` int(10) unsigned," +
+				"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+				"`PhoneNumber` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`Email` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`ImgURL` varchar(45) COLLATE utf8_unicode_ci DEFAULT 'http://www.ilovestudy.com/img/11990001.jpg'," +
+				"`UpdateTime` datetime DEFAULT NULL," +
+				"PRIMARY KEY (`StudentID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher` (" +
+				"`TeacherID` int(10) unsigned NOT NULL," +
+				 "`CollegeID` int(10) unsigned," +
+				"`TeacherName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+				"`DeptName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`PhoneNumber` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`Email` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`ImgURL` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`UpdateTime` datetime DEFAULT NULL," +
+				"PRIMARY KEY (`TeacherID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`student_takes` (" +
+				"`InterviewID` int(10) unsigned NOT NULL," +
+				"`StudentID` int(10) unsigned NOT NULL," +
+				"`InterviewSiteID` int(10) unsigned NOT NULL," +
+				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`Signin` int(11) NOT NULL," +
+				"PRIMARY KEY (`InterviewID`,`StudentID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher_takes` (" +
+				"`InterviewID` int(10) unsigned NOT NULL," +
+				"`TeacherID` int(10) unsigned NOT NULL," +
+				"`InterviewSiteID` int(10) unsigned NOT NULL," +
+				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`Signin` int(11) NOT NULL," +
+				"PRIMARY KEY (`InterviewID`,`TeacherID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`xls_student_takes` (" +
+				"`InterviewSiteName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+				"`StartTime` datetime NOT NULL," +
+				"`EndTime` datetime NOT NULL," +
+				"`StudentID` int(11) NOT NULL," +
+				"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`Email` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
+				"`PhoneNumber` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
+				"`CollegeID` int(11) DEFAULT NULL," +
+				"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+				"`UpdateTime` datetime DEFAULT NULL," +
+				"`CollegeName` varchar(45) DEFAULT NULL," +
+				"`Password` varchar(45) DEFAULT NULL," +
+				"`StudentSideChosen` int(11) DEFAULT 0," +
+				"`TeacherSideChosen` int(11) DEFAULT 0," +
+				"PRIMARY KEY (`InterviewSiteName`,`StudentID`,`StartTime`,`EndTime`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`xls_teacher_takes` (" +
+				"`InterviewSiteName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+				"`StartTime` datetime NOT NULL," +
+				"`EndTime` datetime NOT NULL," +
+				"`TeacherID` int(11) NOT NULL," +
+				"`TeacherName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`Email` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+				"`PhoneNumber` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+				"`DeptName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`CollegeID` int(11) DEFAULT NULL," +
+				"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+				"`UpdateTime` datetime DEFAULT NULL," +
+				"PRIMARY KEY (`InterviewSiteName`,`TeacherID`,`StartTime`,`EndTime`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`info` (" +
+				"`CollegeID` int(11) NOT NULL," +
+				"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`CreateTime` datetime DEFAULT NULL," +
+				"`LogCount` int(11) DEFAULT 0," +
+				"PRIMARY KEY (`CollegeID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`logdata` (" +
+				"`LogID` int(11) NOT NULL AUTO_INCREMENT," +
+				"`LogTime` datetime DEFAULT NULL," +
+				"`FunctionName` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+				"`IP` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+				"PRIMARY KEY (`LogID`)" +
+				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"); 
+			let nowTime = new Date();
+			let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
+			await connection.execute("INSERT INTO sunshine_" + collegeId + ".`info`(CollegeID, CollegeName, CreateTime, LogCount) " +
+				"VALUES (" + collegeId + ", (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + "), " + nowTime_db + ", 0);");
+			//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".student AUTO_INCREMENT = " + ((+collegeId) * 1000000) + ";");
+			//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".teacher AUTO_INCREMENT = " + ((+collegeId) * 1000000 + 990000) + ";");
+			await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interviewSite AUTO_INCREMENT = " + ((+collegeId) * 100) + ";");
+			await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interview AUTO_INCREMENT = " + ((+collegeId) * 10000) + ";");
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End newSchemaToDB('" + collegeId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "newSchemaToDB('66')",
+			"legal": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.dropSchemaToDB = async function(collegeId)/* fun28 */
+	{
+		// [Xu] Exp: dropSchemaToDB("66");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "dropSchemaToDB");
+		if (showDetails) console.log("[Start dropSchemaToDB('" + collegeId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "dropSchemaToDB('" + collegeId + "')";
+		if (+collegeId < 0 || +collegeId > 99)
+		{
+			res.legal = "false";
+			res.reason = "The collegeId is illegal.";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			await connection.execute("drop schema sunshine_" + collegeId + ";");
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End dropSchemaToDB('" + collegeId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "dropSchemaToDB('66')",
+			"legal": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.insertStudentTakesToDB = async function(collegeId, interviewSiteName, startTime, endTime, studentID, studentName, email, phoneNumber)/* fun29 */
+	{
+		// [Xu] Exp: insertStudentTakesToDB("66", "燕园楼816教室", "2019/6/11 9:00", "2019/6/11 9:50", "11000002", "赵子曦", "2424046755@qq.cn", "18892748534");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "insertStudentTakesToDB");
+		if (showDetails) console.log("[Start insertStudentTakesToDB('" + collegeId + "', '" + interviewSiteName + "', '" + startTime + "', '" + endTime + 
+			"', '" + studentID + "', '" + studentName + "', '" + email + "', '" + phoneNumber + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "insertStudentTakesToDB('" + interviewSiteName + "', '" + startTime + "', '" + endTime + "', '" + studentID + "', '" + studentName + "', '" + email + "', '" + phoneNumber + "')";
+		res.legal = "true";
+		await connection.execute("insert into xls_student_takes(InterviewSiteName, StartTime, EndTime, StudentID, StudentName, Email, PhoneNumber) " + 
+			"values('" + interviewSiteName + "', '" + startTime + "', '" + endTime + "', " + studentID + ", '" + studentName + "', '" + email + "', '" + phoneNumber + "');");
+		await connection.execute("update xls_student_takes set CollegeID = " + collegeId + ";");
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End insertStudentTakesToDB('" + collegeId + "', '" + interviewSiteName + "', '" + startTime + "', '" + endTime + 
+			"', '" + studentID + "', '" + studentName + "', '" + email + "', '" + phoneNumber + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "insertStudentTakesToDB('燕园楼816教室', '2019/6/11 9:00', '2019/6/11 9:50', '11000002', '赵子曦', '2424046755@qq.cn', '18892748534')",
+			"legal": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.insertTeacherTakesToDB = async function(collegeId, interviewSiteName, startTime, endTime, teacherID, teacherName, email, phoneNumber, deptName)/* fun30 */
+	{
+		// [Xu] Exp: insertTeacherTakesToDB("66", "燕园楼816教室", "2019/6/11 9:00", "2019/6/11 9:50", "11990002", "张建龙", "1008066205@zz.edu.cn", "13346669064", "化学");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "insertTeacherTakesToDB");
+		if (showDetails) console.log("[Start insertTeacherTakesToDB('" + collegeId + "', '" + interviewSiteName + "', '" + startTime + "', '" + endTime + 
+			"', '" + teacherID + "', '" + teacherName + "', '" + email + "', '" + phoneNumber + "', '" + deptName + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "insertTeacherTakesToDB('" + interviewSiteName + "', '" + startTime + "', '" + endTime + "', '" + teacherID + "', '" + teacherName + "', '" + email + "', '" + phoneNumber + "', '" + deptName + "')";
+		res.legal = "true";
+		await connection.execute("insert into xls_teacher_takes(InterviewSiteName, StartTime, EndTime, TeacherID, TeacherName, Email, PhoneNumber, DeptName) " + 
+			"values('" + interviewSiteName + "', '" + startTime + "', '" + endTime + "', " + teacherID + ", '" + teacherName + "', '" + email + "', '" + phoneNumber + "', '" + deptName + "');");
+		await connection.execute("update xls_teacher_takes set CollegeID = " + collegeId + ";");
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End insertTeacherTakesToDB('" + collegeId + "', '" + interviewSiteName + "', '" + startTime + "', '" + endTime + 
+			"', '" + teacherID + "', '" + teacherName + "', '" + email + "', '" + phoneNumber + "', '" + deptName + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "insertTeacherTakesToDB('燕园楼816教室', '2019/6/11 9:00', '2019/6/11 9:50', '11990002', '张建龙', '1008066205@zz.edu.cn', '13346669064', '化学')",
+			"legal": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.buildTablesToDB = async function(collegeId)/* fun31 */
+	{
+		// [Xu] Exp: buildTablesToDB("66");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "buildTablesToDB");
+		if (showDetails) console.log("[Start buildTablesToDB('" + collegeId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "buildTablesToDB('" + collegeId + "')";
+		res.legal = "true";
+		await connection.execute("insert into student select distinct StudentID, CollegeID, StudentName, PhoneNumber, Email, ImgURL, UpdateTime " +
+			"from xls_student_takes order by StudentID;");
+		res.build_student = "success";//建立student成功
+		await connection.execute("insert into teacher select distinct TeacherID, CollegeID, TeacherName, Deptname, PhoneNumber, Email, ImgURL, UpdateTime " + 
+			"from xls_teacher_takes order by TeacherID;");
+		res.build_teacher = "success";//建立teacher成功
+		await connection.execute("insert into interviewsite select distinct null, CollegeID, CollegeName, InterviewSiteName, `Password`, TeacherSideChosen, StudentSideChosen " + 
+			"from xls_student_takes order by InterviewSiteName;");
+		await connection.execute("update interviewsite set `Password` = ceiling(rand() * 9000 + 999);");
+		await connection.execute("update interviewsite set `CollegeName` = (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + ");");
+		res.build_interviewSite = "success";//建立interviewSite成功
+		await connection.execute("insert into interview select distinct null,q.InterviewSiteID,null," + 
+			"StartTime,EndTime,null,null,0,null from xls_student_takes as p, interviewsite as q where q.InterviewSite = p.InterviewSiteName order by q.InterviewSiteID, StartTime;");
+		if (true)
+		{
+			let [rows, fields] = await connection.execute("SELECT * from interview;");
+			//console.log(rows);
+			if (!rows[0]);//if empty
+			else
+			{
+				let tmpDate = rows[0].StartTime.substr(0, 10);
+				let tmpSiteID = rows[0].InterviewSiteID;
+				let count = 0;
+				for (let oneInterview in rows)
+				{
+					count++;
+					if (oneInterview != 0)
+					{
+						newDate = rows[oneInterview].StartTime.substr(0, 10);
+						newSiteID = rows[oneInterview].InterviewSiteID;
+						if (newDate != tmpDate || newSiteID != tmpSiteID)
+						{
+							count = 1;
+							tmpDate = newDate;
+							tmpSiteID = newSiteID;
+						}
+					}
+					let orderString = "第" + count + "场";
+					//console.log(orderString);
+					await connection.execute("update interview set OrderNumber = '" + orderString + "' where InterviewID = " + rows[oneInterview].InterviewID + ";");
+				}
+			}
+		}
+		res.build_interview = "success";//建立interview成功
+		await connection.execute("insert into student_takes select distinct q.InterviewID, p.StudentID, q.InterviewSiteID, q.OrderNumber, 0 as Signin from xls_student_takes as p, " + 
+			"interview as q, interviewsite as r where p.InterviewSiteName = r.InterviewSite and q.StartTime = p.StartTime and q.EndTime = p.EndTime and r.InterviewSiteID = " + 
+			"q.InterviewSiteID order by q.InterviewID, p.StudentID;");
+		res.build_student_takes = "success";//建立student_takes成功
+		await connection.execute("insert into teacher_takes select distinct q.InterviewID, p.TeacherID, q.InterviewSiteID, q.OrderNumber, 0 as Signin from xls_teacher_takes as p, " + 
+			"interview as q, interviewsite as r where p.InterviewSiteName = r.InterviewSite and q.StartTime = p.StartTime and q.EndTime = p.EndTime and r.InterviewSiteID = " + 
+			"q.InterviewSiteID order by q.InterviewID, p.TeacherID;");
+		res.build_teacher_takes = "success";//建立teacher_takes成功
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End buildTablesToDB('" + collegeId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "buildTablesToDB('66')",
+			"legal": "true",
+			"build_student": "success",
+			"build_teacher": "success",
+			"build_interviewSite": "success",
+			"build_interview": "success",
+			"build_student_takes": "success",
+			"build_teacher_takes": "success"
+		}
+		********************** Example **********************/
+	}
 };
 
 
-// async function main()
-// {
-// 	let res;
-// 	if (hostfromtxt) myconnect.host = await fs.readFileSync('./host.txt', 'utf8');
-// 	res = await validateFromDB("1101", "1101"); /* fun01 */
-// 	res = await chooseSideToDB("1101", "teacher"); /* fun02 */
-// 	res = await resetSideToDB("1101", "teacher"); /* fun03 */
-// 	res = await checkSideFromDB("1101", "teacher"); /* fun04 */
-// 	res = await checkOrderFromDB("1101", "2"); /* fun05 */
-// 	res = await chooseOrderToDB("1102", "2"); /* fun06 */
-// 	res = await resetOrderFromDB("1102", "2"); /* fun07 */
-// 	res = await teacherSigninToDB("1101", "1", "11990005"); /* fun08 */
-// 	res = await teacherSignoutToDB("1101", "2", "11990005"); /* fun09 */
-// 	res = await studentSigninToDB("1101", "2", "11000001"); /* fun10 */
-// 	res = await studentSignoutToDB("1101", "2", "11000001"); /* fun11 */
-// 	res = await startInterviewToDB("1101", "2"); /* fun12 */
-// 	res = await endInterviewToDB("1101", "2"); /* fun13 */
-// 	res = await resetTimesOfInterviewToDB("1101", "2"); /* fun14 */
-// 	res = await checkStartFromDB("1101", "2"); /* fun15 */
-// 	res = await checkEndFromDB("1101", "2"); /* fun16 */
-// 	res = await checkTeacherSigninFromDB("1101", "2", "11990005"); /* fun17 */
-// 	res = await checkStudentSigninFromDB("1101", "2", "11000001"); /* fun18 */
-// 	res = await checkTeacherSigninPreviousInterviewFromDB("1101", "2", "11990005"); /* fun19 */
-// 	res = await queryStudentFromDB("1101", "2"); /* fun20 */
-// 	res = await getInterViewInfoFromDB("1102", "1102"); /* fun21 */
-// 	res = await studentQueryOrderFromDB("1101"); /* fun22 */
-// 	res = await getStudentImgURLFromDB("11000001"); /* fun23*/
-// 	res = await setStudentImgURLToDB("11000001", "http://ILoveStudy.com/img/11/1.jpg"); /* fun24 */
-// 	res = await resetStudentImgURLToDB("11000001"); /* fun25 */
-// 	//console.log(res);
-// }
-// main();
+//async function main()
+//{
+//	let res;
+//	if (hostfromtxt) myconnect.host = await fs.readFileSync('./host.txt', 'utf8');
+//	if (false)
+//	{
+//	res = await validateFromDB("66", "1101", "1101"); /* fun01 */
+//	res = await chooseSideToDB("66", "1101", "teacher"); /* fun02 */
+//	res = await resetSideToDB("66", "1201", "student"); /* fun03 */
+//	res = await checkSideFromDB("66", "1101", "teacher"); /* fun04 */
+//	res = await checkOrderFromDB("66", "1101", "第二场"); /* fun05 */
+//	res = await chooseOrderFromDB("66", "1102", "第二场"); /* fun06 */
+//	res = await resetOrderFromDB("66", "1102", "第二场"); /* fun07 */
+//	res = await teacherSigninToDB("66", "1101", "第一场", "11990005"); /* fun08 */
+//	res = await teacherSignoutToDB("66", "1101", "第二场", "11990005"); /* fun09 */
+//	res = await studentSigninToDB("66", "1101", "第二场", "11000001"); /* fun10 */
+//	res = await studentSignoutToDB("66", "1101", "第二场", "11000001"); /* fun11 */
+//	res = await startInterviewToDB("66", "1101", "第一场"); /* fun12 */
+//	res = await endInterviewToDB("66", "1101", "第二场"); /* fun13 */
+//	res = await resetTimesOfInterviewToDB("66", "1202", "第二场"); /* fun14 */
+//	res = await checkStartFromDB("66", "1101", "第二场"); /* fun15 */
+//	res = await checkEndFromDB("66", "1101", "第二场"); /* fun16 */
+//	res = await checkTeacherSigninFromDB("66", "1101", "第二场", "11990005"); /* fun17 */
+//	res = await checkStudentSigninFromDB("66", "1101", "第二场", "11000001"); /* fun18 */
+//	res = await checkTeacherSigninPreviousInterviewFromDB("66", "1101", "第二场", "11990005"); /* fun19 */
+//	res = await queryStudentFromDB("66", "1101", "第二场"); /* fun20 */
+//	res = await getInterViewInfoFromDB("66", "1102", "1102"); /* fun21 */
+//	res = await studentQueryOrderFromDB("66", "1101"); /* fun22 */
+//	res = await getImgURLFromDB("66", "11990001"); /* fun23*/
+//	res = await setImgURLToDB("66", "11000001", "http://ILoveStudy.com/img/11/1.jpg"); /* fun24 */
+//	res = await resetStudentImgURLToDB("66", "11000001"); /* fun25 */
+//	res = await cleanDataToDB("66"); /* fun26 */
+//	}
+//	if (true) res = await newSchemaToDB("66"); /* fun27 */
+//	if (false) res = await dropSchemaToDB("66"); /* fun28 */
+//	if (true)
+//	{
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000006", "王靖雯", "4252746483@qq.cn", "18701027128"); /* fun29 */
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000010", "张梓恒", "1239690265@qq.cn", "18702634284");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000014", "魏民谣", "4139955523@qq.cn", "13711852218");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000018", "杨芊慧", "4063755300@qq.cn", "13917028903");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000002", "赵子曦", "2424046755@qq.cn", "18892748534");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000019", "杨宏亮", "1528349932@qq.cn", "13412384996");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000003", "李明泽", "2499943327@qq.cn", "18651954818");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000007", "王琛杰", "614444238@qq.cn", "13453916075");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000011", "吴所谓", "4550700454@qq.cn", "13480258914");
+//	res = await insertStudentTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000015", "陈逸轩", "3474446654@qq.cn", "18495570983");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000012", "包青白", "3381875904@qq.cn", "13413054593");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000016", "陈思宇", "712769062@qq.cn", "13389820840");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000000", "赵星儿", "307748470@qq.cn", "18327519127");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000004", "李承淅", "3731831085@qq.cn", "13754572439");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11000008", "王易卓", "4214524971@qq.cn", "18783245155");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000001", "赵汐悦", "1410057125@qq.cn", "18683179950");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000005", "李昕睿", "1807089478@qq.cn", "13779837466");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000009", "张晨皓", "4640351021@qq.cn", "13692528790");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000013", "白读书", "3212956973@qq.cn", "13954859886");
+//	res = await insertStudentTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11000017", "陈一铭", "4643880864@qq.cn", "13350453791");
+//	res = await insertTeacherTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11990002", "张建龙", "1008066205@zz.edu.cn", "13346669064", "化学");/* fun30 */
+//	res = await insertTeacherTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11990006", "陈鸿玉", "1004408279@zz.edu.cn", "13415299709", "哲学");
+//	res = await insertTeacherTakesToDB("66", "燕园楼816教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11990010", "林妍", "1001137881@zz.edu.cn", "13580933067", "生物");
+//	res = await insertTeacherTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11990011", "谢子琦", "1006743071@zz.edu.cn", "18508685888", "哲学");
+//	res = await insertTeacherTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11990003", "蔡文化", "1003931556@zz.edu.cn", "18990367691", "艺术");
+//	res = await insertTeacherTakesToDB("66", "燕园楼816教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11990007", "杨文锦", "1002986067@zz.edu.cn", "18794387510", "中文");
+//	res = await insertTeacherTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11990004", "甄红", "1009127187@zz.edu.cn", "13898422837", "中文");
+//	res = await insertTeacherTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11990005", "贾紫", "1007576950@zz.edu.cn", "18456223339", "物理");
+//	res = await insertTeacherTakesToDB("66", "第九教学楼305教室", "2019-06-11 09:00:00", "2019-06-11 09:50:00", "11990008", "吴志远", "1004371808@zz.edu.cn", "18301725555", "艺术");
+//	res = await insertTeacherTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11990001", "赵一凡", "1005185348@zz.edu.cn", "18515418788", "艺术");
+//	res = await insertTeacherTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11990005", "贾紫", "1007576950@zz.edu.cn", "18456223339", "物理");
+//	res = await insertTeacherTakesToDB("66", "第九教学楼305教室", "2019-06-11 10:00:00", "2019-06-11 10:50:00", "11990009", "吴维平", "1003322011@zz.edu.cn", "18499551624", "数学");
+//	res = await buildTablesToDB("66"); /* fun31 */
+//	}
+//	//await test();
+//	//console.log(res);
+//}
+//main();
+//
 
