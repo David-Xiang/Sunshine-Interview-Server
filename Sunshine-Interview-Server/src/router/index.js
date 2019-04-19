@@ -5,6 +5,7 @@ import chooseFunction from '@/components/chooseFunction'
 import addInformation from '@/components/addInformation'
 import viewCertificate from '@/components/viewCertificate'
 import searchVideo from '@/components/searchVideo'
+import watchVideo from '@/components/watchVideo'
 
 Vue.use(Router)
 
@@ -30,6 +31,10 @@ export default new Router({
     {
       path: '/search',
       component: searchVideo
+    },
+    {
+      path: '/watch',
+      component: watchVideo
     }
   ]
 })

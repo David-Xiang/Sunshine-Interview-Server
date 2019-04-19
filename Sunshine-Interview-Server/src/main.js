@@ -10,8 +10,13 @@ import 'font-awesome/css/font-awesome.css'
 import 'admin-lte/dist/css/AdminLTE.min.css'
 import 'admin-lte/dist/css/skins/_all-skins.min.css'
 import generatePdf from './components/utils/generatePdf'
+import Video from 'video.js'
+import 'video.js/dist/video-js.css'
+
+Vue.prototype.$video = Video
 
 Vue.use(generatePdf)
+
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
