@@ -6,7 +6,7 @@
       <small>Check</small>
     </h1>
     <ol class="breadcrumb">
-      <li><a href="#"><i class="fa fa-dashboard"></i> 首页</a></li>
+      <li><a href="#/"><i class="fa fa-dashboard"></i> 首页</a></li>
       <li class="active">查验视频</li>
     </ol>
   </section>
@@ -45,7 +45,10 @@
       </div>
     </div>
       <div class="box-footer">
-        <button type="submit" class="btn btn-danger">查询</button>
+        <router-link to="/watch">
+          <i class="fa fa-link"></i>
+          <button type="submit" class="btn btn-danger">查询</button>
+        </router-link>
       </div>
     <!-- /.box-body -->
   </div>

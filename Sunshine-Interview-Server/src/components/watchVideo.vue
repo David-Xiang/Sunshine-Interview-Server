@@ -12,6 +12,8 @@
     </ol>
   </section>
     <section class="content">
+      <div class="row">
+        <div class="col-lg-4 col-xs-6">
       <div class="test_two_box">
         <video
           id="myVideo"
@@ -22,6 +24,20 @@
             type="video/mp4"
           >
         </video>
+      </div>
+        </div>
+        <div class="col-lg-3 col-xs-6"></div>
+        <div class="col-lg-4 col-xs-6 bg-red">
+          <div class="inner">
+          <span class="info-box-icon"><i class="fa fa-bookmark-o"></i></span>
+          <div class="info-box-content">
+        <h4>    考试：博雅计划面试</h4>
+        <h4>    考场：文史楼101</h4>
+        <h4>    时间：2019/06/20 8:30 - 9:00</h4>
+        <h4>    参与者：胡三汉</h4>
+          </div>
+          </div>
+      </div>
       </div>
     </section>
   </div>

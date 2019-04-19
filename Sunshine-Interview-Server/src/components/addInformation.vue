@@ -7,8 +7,8 @@
         <small>New exam</small>
       </h1>
       <ol class="breadcrumb">
-        <li><a href="#"><i class="fa fa-dashboard"></i> 首页</a></li>
-        <li><a href="#">设置考试信息</a></li>
+        <li><a href="#/"><i class="fa fa-dashboard"></i> 首页</a></li>
+        <li><a href="#/">设置考试信息</a></li>
         <li class="active">新建考试</li>
       </ol>
     </section>
