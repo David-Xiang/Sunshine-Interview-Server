@@ -39,13 +39,13 @@
             </div>
             <div class="form-group">
               <label for="exampleInputFile">上传考生信息</label>
-              <input type="file" id="exampleInputFile">
+              <input type="file" v-on:change="studentFile($event)" id="exampleInputFile">
 
               <p class="help-block">请勿修改表格格式</p>
             </div>
             <div class="form-group">
               <label for="exampleInputFile1">上传考官信息</label>
-              <input type="file" id="exampleInputFile1">
+              <input type="file" v-on:change="teacherFile($event)" id="exampleInputFile1">
 
               <p class="help-block">请勿修改表格格式</p>
             </div>
@@ -53,7 +53,7 @@
           <!-- /.box-body -->
 
           <div class="box-footer">
-            <button type="submit" class="btn btn-danger">提交</button>
+            <button type="submit" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
           </div>
         </form>
       </div>
@@ -63,19 +63,95 @@
 </template>
 
 <script>
+/* eslint-disable */
 import * as axios from 'axios'
 export default {
   name: 'add',
   data () {
     return {
       // TODO:
+      teacherInfo:{},
+      studentInfo:{},
       userimg: require('../assets/bigbrother.png')
     }
   },
   methods: {
-    signin () {
-      ;
+    transferTimeStr: function(inputStr){
+      return inputStr;
     },
+    checkCrush: function(){
+
+    },
+    uploadInfo: function(){
+      if (this.checkCrush()) {
+        alert("GG");
+        return;
+      }
+      $.post("http://10.2../register", {teacher:this.teacherInfo, student:this.studentInfo}, function (data, status) {
+        // do nothing
+      })
+    },
+    studentFile: function(event){
+      let file = event.target.files[0];
+      this.readFile(file, true)
+    },
+    teacherFile: function(event){
+      let file = event.target.files[0];
+      this.readFile(file, false);
+    },
+    readFile : function(file, isStu) {
+      let reader = new FileReader();
+      let content = {};
+
+      reader.onload = function (e) {
+        try {
+          let data = e.target.result;
+          content = XLSX.read(data, {type: "array"});
+        }
+        catch(e) {
+          alert("Error!");
+          return;
+        }
+        //console.log(content);
+        let res = [];
+        for (let sheet in content.Sheets)
+        {
+          if (content.Sheets.hasOwnProperty(sheet)) {
+            res = res.concat(XLSX.utils.sheet_to_json(content.Sheets[sheet]));
+          }
+        }
+
+        let results = [];
+        for (let key in res){
+          if (res.hasOwnProperty(key)) {
+            if (res[key].hasOwnProperty("StartTime"))
+              res[key]["StartTime"] = this.transferTimeStr(res[key]["StartTime"]);
+            else{
+              alert("Error!");
+              return;
+            }
+
+            if (res[key].hasOwnProperty("EndTime"))
+              res[key]["EndTime"] = this.transferTimeStr(res[key]["EndTime"]);
+            else{
+              alert("Error!");
+              return;
+            }
+
+            results.push(res[key])
+          }
+        }
+
+        if (isStu)
+          this.studentInfo = results;
+        else
+          this.teacherInfo = results;
+      };
+      //reader.readAsBinaryString(file);
+      reader.readAsArrayBuffer(file)
+    },
+
+
     download: function () {
       axios({
         method: 'get',

@@ -9,11 +9,11 @@
         <p class="login-box-msg">高校及教育部入口</p>
 
           <div class="form-group has-feedback">
-            <input type="number" class="form-control" placeholder="用户名">
+            <input type="number" v-model="username" class="form-control" placeholder="用户名">
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
           </div>
           <div class="form-group has-feedback">
-            <input type="password" class="form-control" placeholder="密码">
+            <input type="password" v-model="password" class="form-control" placeholder="密码">
             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
           </div>
           <div class="row">
@@ -41,12 +41,33 @@
 
 </template>
 
+<!--script src="http://code.jquery.com/jquery-latest.js"></script-->
 <script>
+/* eslint-disable */
 export default {
   name: 'signinSchool',
+  data() {
+    return {
+      username : "",
+      password : ""
+    }
+  },
+  watch: {
+    username: function (nValue, oValue) {
+      console.log("username changed")
+    },
+    password: function (nValue, oValue) {
+      console.log("passwprd changed")
+    }
+  },
   methods: {
     signin () {
-      this.$router.replace('/search')
+      $.get("http://10.2..", {username: this.username, password: this.password},function (data, stats) {
+        if (data)
+          this.$router.replace('/search')
+        else
+          alert("网络请求错误，请重试！")
+      })
     }
   }
 }
