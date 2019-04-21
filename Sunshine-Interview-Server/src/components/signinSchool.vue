@@ -8,7 +8,6 @@
       <div class="login-box-body">
         <p class="login-box-msg">高校及教育部入口</p>
 
-        <form action="#" method="post">
           <div class="form-group has-feedback">
             <input type="number" class="form-control" placeholder="用户名">
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
@@ -31,7 +30,6 @@
             </div>
             <!-- /.col -->
           </div>
-        </form>
 
         <a href="#">忘记密码</a><br>
         <a href="#" class="text-center">注册新账号</a>
@@ -45,7 +43,12 @@
 
 <script>
 export default {
-  name: 'signinSchool'
+  name: 'signinSchool',
+  methods: {
+    signin () {
+      this.$router.replace('/search')
+    }
+  }
 }
 </script>
 

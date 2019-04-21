@@ -42,7 +42,7 @@
 
 <script>
 export default {
-  name: 'signinTeacher',
+  name: 'signinStudent',
   methods: {
     signin () {
       this.$router.replace('/view')
