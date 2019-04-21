@@ -20,7 +20,6 @@
     "font-awesome": "^4.7.0",
     "jquery": "^3.4.0",
     "jspdf": "^1.5.3",
-    "video.js": "^7.5.4",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"
   },

@@ -26,7 +26,7 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
+              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" @click="signin">登录</button>
             </div>
             <!-- /.col -->
           </div>
@@ -42,7 +42,12 @@
 
 <script>
 export default {
-  name: 'signinTeacher'
+  name: 'signinTeacher',
+  methods: {
+    signin () {
+      this.$router.replace('/view')
+    }
+  }
 }
 </script>
 

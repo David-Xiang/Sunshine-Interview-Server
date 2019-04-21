@@ -93,13 +93,13 @@
           <li class="header">功能列表</li>
           <!-- Optionally, you can add icons to the links -->
           <li>
-            <router-link to="/addInformation">
+            <router-link to="/signinTeacher">
               <i class="fa fa-link"></i>
               <span>设置考试信息</span>
             </router-link>
           </li>
-          <li><router-link to="/view"><i class="fa fa-link"></i> <span>查看证书</span></router-link></li>
-          <li><router-link to="/search"><i class="fa fa-link"></i> <span>查看视频</span></router-link></li>
+          <li><router-link to="/signinStudent"><i class="fa fa-link"></i> <span>查看证书</span></router-link></li>
+          <li><router-link to="/signinSchool"><i class="fa fa-link"></i> <span>查看视频</span></router-link></li>
         </ul>
         <!-- /.sidebar-menu -->
       </section>
