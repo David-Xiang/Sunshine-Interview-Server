@@ -1,13 +1,12 @@
 <template>
   <div class="content body">
-    <div class="hold-transition lgoin-page">
     <div class="login-box" style="height: auto">
       <div class="login-logo">
         <a href="../../index.html"><b>阳光考试系统</b>BETA</a>
       </div>
       <!-- /.login-logo -->
       <div class="login-box-body">
-        <p class="login-box-msg">高校及教育部入口</p>
+        <p class="login-box-msg">考生入口</p>
 
           <div class="form-group has-feedback">
             <input type="number" class="form-control" placeholder="用户名">
@@ -38,14 +37,12 @@
       </div>
       <!-- /.login-box-body -->
     </div>
-    </div>
   </div>
-
 </template>
 
 <script>
 export default {
-  name: 'signinSchool'
+  name: 'signinTeacher'
 }
 </script>
 
