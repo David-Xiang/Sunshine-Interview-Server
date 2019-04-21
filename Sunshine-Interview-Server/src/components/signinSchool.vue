@@ -1,6 +1,5 @@
 <template>
   <div class="content body">
-    <div class="hold-transition lgoin-page">
     <div class="login-box" style="height: auto">
       <div class="login-logo">
         <a href="../../index.html"><b>阳光考试系统</b>BETA</a>
@@ -9,6 +8,7 @@
       <div class="login-box-body">
         <p class="login-box-msg">高校及教育部入口</p>
 
+        <form action="#" method="post">
           <div class="form-group has-feedback">
             <input type="number" class="form-control" placeholder="用户名">
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
@@ -27,17 +27,17 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
+              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" v-on:click="signin">登录</button>
             </div>
             <!-- /.col -->
           </div>
+        </form>
 
         <a href="#">忘记密码</a><br>
         <a href="#" class="text-center">注册新账号</a>
 
       </div>
       <!-- /.login-box-body -->
-    </div>
     </div>
   </div>
 
