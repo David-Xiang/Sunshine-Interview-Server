@@ -46,7 +46,7 @@
     </div>
       <div class="box-footer">
         <router-link to="/watch">
-          <i class="fa fa-link"></i>
+<!--          <i class="fa fa-link"></i>-->
           <button type="submit" class="btn btn-danger">查询</button>
         </router-link>
       </div>

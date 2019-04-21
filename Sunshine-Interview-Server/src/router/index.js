@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import main from '@/components/main'
+import signinTeacher from '@/components/signinTeacher'
+import signinStudent from '@/components/signinStudent'
+import signinSchool from '@/components/signinSchool'
 import chooseFunction from '@/components/chooseFunction'
 import addInformation from '@/components/addInformation'
 import viewCertificate from '@/components/viewCertificate'
@@ -21,8 +23,16 @@ export default new Router({
       component: addInformation
     },
     {
-      path: '/signin',
-      component: main
+      path: '/signinStudent',
+      component: signinStudent
+    },
+    {
+      path: '/signinTeacher',
+      component: signinTeacher
+    },
+    {
+      path: '/signinSchool',
+      component: signinSchool
     },
     {
       path: '/view',
