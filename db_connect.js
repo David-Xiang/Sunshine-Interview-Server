@@ -1642,6 +1642,142 @@ module.exports = function(host){
 		}
 		********************** Example **********************/
 	}
+
+	this.webNewAccountToDB = async function(userName, userPassword, userType, collegeId, remarks)/* fun32 */
+	{
+		// [Xu] Exp: webNewAccountToDB("xuenze", "xuenze", "addInformation", "66", "徐sir真帅");
+		myconnect.database = "webaccount";
+		if (showDetails) console.log("[Start webNewAccountToDB('" + userName + "', '" + userPassword + "', '" + userType + "', '" + collegeId + "', '" + remarks + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "webNewAccountToDB('" + userName + "', '" + userPassword + "', '" + userType + "', '" + collegeId + "', '" + remarks + "')";
+		
+		let [rows, fields] = await connection.execute("SELECT UserName from userinfo where UserName = '" + userName + "';");
+		if (!rows[0])//if legal
+		{
+			res.legal = "true";
+			let nowTime = new Date();
+			let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
+			let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
+			await connection.execute("insert into webaccount.userinfo(UserID, UserName, UserPassword, UserType, CollegeID, Remarks, CreateTime) " + 
+				"values(null,'" + userName + "', '" + userPassword + "', '" + userType + "', '" + collegeId + "', '" + remarks + "', " + nowTime_db + ");");
+			let [rows2, fields2] = await connection.execute("SELECT UserID from userinfo where UserName = '" + userName + "';");
+			res.info = {};
+			res.info.UserID = rows2[0].UserID;
+			res.info.UserName = userName;
+			res.info.UserPassword = userPassword;
+			res.info.UserType = userType;
+			res.info.CollegeID = collegeId;
+			res.info.Remarks = remarks;
+			res.info.CreateTime = nowTime_js;
+		}
+		else
+		{
+			res.legal = "false";
+			res.reason = "This UserName exists.";
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End webNewAccountToDB('" + userName + "', '" + userPassword + "', '" + userType + "', '" + collegeId + "', '" + remarks + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "webNewAccountToDB('xiangdongwei', 'xiangdongwei', 'addInformation', '88', '向Sir真帅')",
+			"legal": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.webDeleteAccountToDB = async function(userName)/* fun33 */
+	{
+		// [Xu] Exp: webDeleteAccountToDB("xuenze");
+		myconnect.database = "webaccount";
+		if (showDetails) console.log("[Start webDeleteAccountToDB('" + userName + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "webDeleteAccountToDB('" + userName + "')";
+		
+		let [rows, fields] = await connection.execute("SELECT * from userinfo where UserName = '" + userName + "';");
+		if (!rows[0])//if illegal
+		{
+			res.legal = "false";
+			res.reason = "This UserName doesn't exist.";
+		}
+		else
+		{
+			res.legal = "true";
+			//console.log(rows[0]);
+			res.info = {};
+			res.info.UserID = rows[0].UserID;
+			res.info.UserName = rows[0].UserName;
+			res.info.UserPassword = rows[0].UserPassword;
+			res.info.CollegeID = rows[0].CollegeID;
+			res.info.Remarks = rows[0].Remarks;
+			res.info.CreateTime = rows[0].CreateTime;
+			await connection.execute("delete from userinfo where UserName = '" +  userName+ "';");
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End webDeleteAccountToDB('" + userName + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "webDeleteAccountToDB('xiangsir')",
+			"legal": "true",
+			"info": {
+					"UserID": 4,
+					"UserName": "xiangsir",
+					"UserPassword": "xiangsir",
+					"CollegeID": 66,
+					"Remarks": "xiangsir真帅",
+					"CreateTime": "2019-04-19 20:25:54"
+			}
+		}
+		********************** Example **********************/
+	}
+	
+	this.webDeleteAccountToDB = async function(userName, userPassword)/* fun34 */
+	{
+		// [Xu] Exp: webValidateFromDB("xuenze", "xuenze");
+		myconnect.database = "webaccount";
+		if (showDetails) console.log("[Start webValidateFromDB('" + userName + "', '" + userPassword + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "webValidateFromDB('" + userName + "', '" + userPassword + "')";
+		let [rows, fields] = await connection.execute("SELECT UserPassword, UserType, CollegeID from userinfo where UserName = '" + userName + "';");
+		if (!rows[0])//if illegal
+		{
+			res.legal = "false";
+			res.reason = "This userName doesn't exist.";
+			res.result = "false";
+		}
+		else
+		{
+			res.legal = "true";//if legal
+			res.UserType = rows[0].UserType;
+			res.CollegeID = rows[0].CollegeID;
+			if (userPassword != rows[0].UserPassword)
+			{
+				res.reason = "Wrong Password.";
+				res.result = "false";
+			}
+			else res.result = "true";
+		}
+		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End webValidateFromDB('" + userName + "', '" + userPassword + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "webValidateFromDB('xuenze', 'xuenze')",
+			"legal": "true",
+			"result": "true"
+		}
+		********************** Example **********************/
+	}
 };
 
 
