@@ -1397,6 +1397,8 @@ module.exports = function(host){
 				"`InterviewSiteID` int(10) unsigned NOT NULL," +
 				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
 				"`Signin` int(11) NOT NULL," +
+				"`VideoPath` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`VideoDuration` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
 				"PRIMARY KEY (`InterviewID`,`StudentID`)" +
 				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
 			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher_takes` (" +
@@ -1441,6 +1443,7 @@ module.exports = function(host){
 			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`info` (" +
 				"`CollegeID` int(11) NOT NULL," +
 				"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+				"`InterviewName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT '博雅'," +
 				"`CreateTime` datetime DEFAULT NULL," +
 				"`LogCount` int(11) DEFAULT 0," +
 				"PRIMARY KEY (`CollegeID`)" +
@@ -1616,10 +1619,16 @@ module.exports = function(host){
 			}
 		}
 		res.build_interview = "success";//建立interview成功
-		await connection.execute("insert into student_takes select distinct q.InterviewID, p.StudentID, q.InterviewSiteID, q.OrderNumber, 0 as Signin from xls_student_takes as p, " + 
+		await connection.execute("insert into student_takes select distinct q.InterviewID, p.StudentID, q.InterviewSiteID, q.OrderNumber, 0 as Signin, null, null " + 
+			"from xls_student_takes as p, " + 
 			"interview as q, interviewsite as r where p.InterviewSiteName = r.InterviewSite and q.StartTime = p.StartTime and q.EndTime = p.EndTime and r.InterviewSiteID = " + 
 			"q.InterviewSiteID order by q.InterviewID, p.StudentID;");
 		res.build_student_takes = "success";//建立student_takes成功
+		await connection.execute("insert into certification.userinfo " + 
+			"select null, a.StudentID, StudentName, c.CollegeID, c.CollegeName, a.InterviewID, e.InterviewSite, d.StartTime, d.EndTime, d.StartTimeRecord, d.EndTimeRecord, null " +
+			"from student_takes as a, student as b, info as c, interview as d, interviewsite as e " +
+			"where a.StudentID = b.StudentID and d.InterviewID = a.InterviewID and d.InterviewSiteID = e.InterviewSiteID;");
+			//建立学生certification初表
 		await connection.execute("insert into teacher_takes select distinct q.InterviewID, p.TeacherID, q.InterviewSiteID, q.OrderNumber, 0 as Signin from xls_teacher_takes as p, " + 
 			"interview as q, interviewsite as r where p.InterviewSiteName = r.InterviewSite and q.StartTime = p.StartTime and q.EndTime = p.EndTime and r.InterviewSiteID = " + 
 			"q.InterviewSiteID order by q.InterviewID, p.TeacherID;");
