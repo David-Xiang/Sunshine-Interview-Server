@@ -1,11 +1,14 @@
 "use strict";
+let dbhost = "10.2.147.123";
 let http = require("http");
 let url = require("url");
 let os = require("os");
 let fs = require("fs");
+let path = require("path");
 let formidable = require("formidable");
 let dbmodule = require("./db_connect.js");
-let dbconnect = new dbmodule("10.2.147.123");
+let dbconnect = new dbmodule(dbhost);
+let mime = require("./mime").types;
 
 /** 
  * Utilities
@@ -31,69 +34,113 @@ let server = http.createServer(async function(req, res) {
 
     let pathname = url.parse(req.url).pathname;
     let query = {};
-    if (url.parse(req.url).query !== null)
+    let pathinfo = {};
+    if (url.parse(req.url).query !== null){
         query = parseQueryString(url.parse(req.url).query);
+    }
+    pathinfo = parsePathString(url.parse(req.url).pathname);
+    console.log(pathinfo);
     
     let result = {};
-    switch(pathname){
+    switch(pathinfo.type){
         case "/":
             result = illegalRequest;
+            responseJson(result);
             break;
         case "/validate": 
             result = await getInterviewInfo(query["siteid"], query["validatecode"]);
+            responseJson(result);
             break;
         case "/side":
             result = await chooseSide(query["siteid"], query["side"]);
+            responseJson(result);
             break;
         case "/order":
             result = await chooseOrder(query["siteid"], query["order"]);
+            responseJson(result);
             break;
         case "/teacher":
             result = await teacherSignin(query["siteid"], query["order"], query["id"]);
+            responseJson(result);
             break;
         case "/querystudent":
             result = await queryStudent(query["siteid"], query["order"]);
+            responseJson(result);
             break;
         case "/start":
             result = await start(query["siteid"], query["order"]);
+            responseJson(result);
             break;
         case "/end":
             result = await end(query["siteid"], query["order"]);
+            responseJson(result);
             break;
         case "/queryorder":
             result = await queryOrder(query["siteid"]);
+            responseJson(result);
             break;
         case "/student":
             result = await studentSignin(query["siteid"], query["order"], query["id"]);
+            responseJson(result);
             break;
         case "/querystart":
             result = await queryStart(query["siteid"], query["order"]);
+            responseJson(result);
             break;
         case "/queryend":
             result = await queryEnd(query["siteid"], query["order"]);
+            responseJson(result);
             break;
         case "/upload":
-            result = handleUpload(req, res, query["id"]);
+            result = handleUpload(req, res, pathinfo.path);
+            responseJson(result);
             break;
         case "/download":
             await handleDownload(req, res, query["filename"], "./images/");
-            return;
+            // TODO
+            break;
         case "/reset":
             // Backdoor: reset database
             // DELETE BEFORE RELEASE!!!
             await dbconnect.cleanData();
+            responseJson(result);
+            break;
+        case "/static":
+            handleSite(req, res, "./site/static" + pathinfo.path);
+            break;
+        case "/site":
+            handleSite(req, res, "./site" + pathinfo.path);
+            // TODO
+            break;
+        case "/reqLogIn":
+            responseJson(res, permission);
+            break;
         default:
             result = illegalRequest;
+            responseJson(res, result);
+            break;
     }
-    
-    res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
-    res.write(JSON.stringify(result));
-    res.end();
 });
 
 server.listen(80);
 console.log("Server starts on port " + 80);
 showLocalIP();
+
+function responseJson(res, json){
+    responseText(res, JSON.stringify(json));
+}
+
+function responseText(res, textString){
+    res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
+    res.write(textString);
+    res.end();
+}
+
+function responseError(res, text){
+    res.writeHead(404, {'Content-Type': 'text/plain'});
+    res.write(text);
+    res.end();
+}
 
 function handleUpload(req, res, id){
     if (!id)
@@ -120,10 +167,32 @@ function handleUpload(req, res, id){
     return {"type": "upload_info", "status": "success"};
 }
 
+function handleSite(req, res, realpath){
+    fs.exists(realpath, function(exist){
+        if (!exist){
+            responseError(res, "This request URL " + realpath + " was not found on this server.");
+            return;
+        }
+        fs.readFile(realpath, "binary", function(err, file){
+            if (err){
+                responseError(res, JSON.stringify(err));
+                return;
+            }
+    
+            let ext = path.extname(realpath);
+            ext = ext ? ext.slice(1) : 'unknown';
+            let contentType = mime[ext] || "text/plain";
+            res.writeHead(200, {'Content-Type': contentType});
+            res.write(file, "binary");
+            res.end();
+        });
+    });
+}
+
 async function handleDownload(req, res, fileName, filePath){
     if (!fileName)
         return illegalRequest;
-    if (! await fs.existsSync(filePath+fileName))
+    if (!await fs.existsSync(filePath+fileName))
         return illegalRequest;
     res.writeHead(200,{  
         'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
@@ -152,6 +221,17 @@ function parseQueryString(queryString){
         query[key] = value;
     });
     return query;
+}
+
+function parsePathString(pathString){
+    console.log("pathString: " + pathString);
+    let info = {};
+    let pathIndex = pathString.indexOf("/", 1);
+    if (pathIndex === -1)
+        pathIndex = pathString.length;
+    info.type = pathString.substring(0, pathIndex);
+    info.path = pathString.substring(pathIndex);
+    return info;
 }
 
 /**

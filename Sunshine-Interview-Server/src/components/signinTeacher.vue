@@ -6,9 +6,8 @@
       </div>
       <!-- /.login-logo -->
       <div class="login-box-body">
-        <p class="login-box-msg">登录系统</p>
+        <p class="login-box-msg">教务入口</p>
 
-        <form action="#" method="post">
           <div class="form-group has-feedback">
             <input type="number" class="form-control" placeholder="用户名">
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
@@ -27,11 +26,10 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <button type="" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" v-on:click="signin">登录</button>
+              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
             </div>
             <!-- /.col -->
           </div>
-        </form>
 
         <a href="#">忘记密码</a><br>
         <a href="#" class="text-center">注册新账号</a>
