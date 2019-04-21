@@ -24,7 +24,7 @@
               <i class="ion ion-bag"></i>
               <span class="glyphicon glyphicon-th-list"></span>
             </div>
-                <router-link to="/signin" class="small-box-footer">点击登录 <i class="fa fa-arrow-circle-right"></i></router-link>
+                <router-link to="/signinTeacher" class="small-box-footer">点击登录 <i class="fa fa-arrow-circle-right"></i></router-link>
 
           </div>
         </div>
@@ -41,7 +41,7 @@
               <i class="ion ion-stats-bars"></i>
               <span class="glyphicon glyphicon-file"></span>
             </div>
-            <router-link to="/signin" class="small-box-footer">点击登录 <i class="fa fa-arrow-circle-right"></i></router-link>
+            <router-link to="/signinStudent" class="small-box-footer">点击登录 <i class="fa fa-arrow-circle-right"></i></router-link>
           </div>
         </div>
         <!-- ./col -->
@@ -57,7 +57,7 @@
               <i class="ion ion-pie-graph"></i>
               <span class="glyphicon glyphicon-search"></span>
             </div>
-            <router-link to="/signin" class="small-box-footer">点击登录 <i class="fa fa-arrow-circle-right"></i></router-link>
+            <router-link to="/signinSchool" class="small-box-footer">点击登录 <i class="fa fa-arrow-circle-right"></i></router-link>
           </div>
         </div>
         <!-- ./col -->
