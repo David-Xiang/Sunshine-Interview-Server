@@ -1747,7 +1747,7 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 	
-	this.webDeleteAccountToDB = async function(userName, userPassword)/* fun34 */
+	this.webValidateFromDB = async function(userName, userPassword)/* fun34 */
 	{
 		// [Xu] Exp: webValidateFromDB("xuenze", "xuenze");
 		myconnect.database = "webaccount";
@@ -1783,7 +1783,9 @@ module.exports = function(host){
 		{
 			"functionName": "webValidateFromDB('xuenze', 'xuenze')",
 			"legal": "true",
-			"result": "true"
+			"result": "true",
+			"UserType": "addInformation",
+			"CollegeID": "66"
 		}
 		********************** Example **********************/
 	}
