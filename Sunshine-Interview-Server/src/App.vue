@@ -9,6 +9,7 @@
         <!-- logo for regular state and mobile devices -->
         <span class="logo-lg"><b>阳光面试系统</b>BETA</span>
       </a>
+      <!--signinTeacher v-bind:collegeID="collegeID"></signinTeacher-->
 
       <!-- Header Navbar -->
       <nav class="navbar navbar-static-top" role="navigation">
@@ -222,6 +223,7 @@
 </template>
 
 <script>
+/* eslint-disable */
 export default {
   name: 'App',
   data () {

@@ -53,7 +53,7 @@
           <!-- /.box-body -->
 
           <div class="box-footer">
-            <button type="submit" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
+            <a type="submit" v-on:click="uploadInfo" class="btn btn-danger">提交</a>
           </div>
         </form>
       </div>
@@ -70,40 +70,91 @@ export default {
   data () {
     return {
       // TODO:
-      teacherInfo:{},
-      studentInfo:{},
+      teacherInfo:[],
+      studentInfo:[],
+      collegeID:"",
       userimg: require('../assets/bigbrother.png')
     }
   },
   methods: {
     transferTimeStr: function(inputStr){
-      return inputStr;
+      // inputStr = "6/11/19 9:00"
+      // return inputStr;
+      let date = inputStr.split(" ")[0];
+      let time = inputStr.split(" ")[1];
+      let datelist = date.split("/");
+      if (datelist[0].length === 1)
+        datelist[0] = '0' + datelist[0];
+      if (datelist[1].length === 1)
+        datelist[1] = '0' + datelist[1];
+      datelist[2] = "20" + datelist[2];
+      let newDate = datelist[2] + "-" + datelist[0] + "-" + datelist[1];
+      let timelist = time.split(":");
+      if (timelist[0].length === 1)
+        timelist[0] = "0" + timelist[0];
+      let newTime = timelist[0] + ":" + timelist[1];
+      return newDate + " " + newTime;
     },
     checkCrush: function(){
+      return false;
+      if (!this.teacherInfo instanceof Array || !this.studentInfo instanceof Array){
+        //alert("格式有误，请重新上传");
+        return true;
+      }
+      if (this.teacherInfo.length === 0 || this.studentInfo.length === 0){
+        //alert("格式有误，请重新上传");
+        return true;
+      }
 
+      let tmpT = [].concat(this.teacherInfo);
+      let tmpS = [].concat(this.studentInfo);
+      return false;
     },
     uploadInfo: function(){
       if (this.checkCrush()) {
         alert("GG");
         return;
       }
-      $.post("http://10.2../register", {teacher:this.teacherInfo, student:this.studentInfo}, function (data, status) {
-        // do nothing
+      console.log("before post", this.teacherInfo);
+
+      $.ajax({
+        url: "http://10.2.183.135/register",
+        type:"post",
+        data:{student:this.studentInfo, teacher:this.teacherInfo},
+        success:function (data, stats) {
+          //
+        },
+        error: function (error) {
+          console.log(error);
+        }
+      }).done(function (res) {
+        //
       })
+
     },
     studentFile: function(event){
       let file = event.target.files[0];
-      this.readFile(file, true)
+      this.readFile(file, true);
+      this.formatFile(true);
     },
     teacherFile: function(event){
       let file = event.target.files[0];
       this.readFile(file, false);
+      this.formatFile(false);
+    },
+    formatFile: function(isStu){
+      let res;
+      if (isStu)
+        res = this.studentInfo;
+      else
+        res = this.teacherInfo;
+
     },
     readFile : function(file, isStu) {
       let reader = new FileReader();
       let content = {};
 
-      reader.onload = function (e) {
+      reader.onload = (e) =>{
         try {
           let data = e.target.result;
           content = XLSX.read(data, {type: "array"});
@@ -112,7 +163,6 @@ export default {
           alert("Error!");
           return;
         }
-        //console.log(content);
         let res = [];
         for (let sheet in content.Sheets)
         {
@@ -121,31 +171,34 @@ export default {
           }
         }
 
-        let results = [];
-        for (let key in res){
-          if (res.hasOwnProperty(key)) {
-            if (res[key].hasOwnProperty("StartTime"))
-              res[key]["StartTime"] = this.transferTimeStr(res[key]["StartTime"]);
-            else{
-              alert("Error!");
-              return;
-            }
-
-            if (res[key].hasOwnProperty("EndTime"))
-              res[key]["EndTime"] = this.transferTimeStr(res[key]["EndTime"]);
-            else{
-              alert("Error!");
-              return;
-            }
-
-            results.push(res[key])
+        //console.log("result length:", res.length);
+        for (let key = 0; key < res.length; key++){
+          // console.log(res[key]);
+          if (res[key].hasOwnProperty("StartTime"))
+            res[key]["StartTime"] = this.transferTimeStr(res[key]["StartTime"]);
+          else{
+            console.log("Error!");
+            return;
           }
+          if (res[key].hasOwnProperty("EndTime"))
+            res[key]["EndTime"] = this.transferTimeStr(res[key]["EndTime"]);
+          else {
+            console.log("Error!");
+            return;
+          }
+          //console.log(res[key]);
         }
 
-        if (isStu)
-          this.studentInfo = results;
-        else
-          this.teacherInfo = results;
+        if (isStu) {
+          this.studentInfo = [].concat(res);
+          console.log("this.studentInfo modified:", this.studentInfo);
+        }
+        else{
+          this.teacherInfo = [].concat(res);
+          console.log("this.teacherInfo modified:", this.teacherInfo);
+        }
+
+
       };
       //reader.readAsBinaryString(file);
       reader.readAsArrayBuffer(file)
@@ -187,6 +240,15 @@ export default {
         window.URL.revokeObjectURL(blobURL)
       }
     }
+  },
+  created() {
+    eventBus.$on('sendcollegeID', function (data) {
+      console.log("in addInformation", data);
+      this.collegeID = data;
+    })
+  },
+  beforeDestroy() {
+    //eventBus.$off('sendcollegeID');
   }
 }
 </script>

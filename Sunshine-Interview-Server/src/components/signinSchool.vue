@@ -26,7 +26,7 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" v-on:click="signin">登录</button>
+              <a href="javascript:void(0);" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" v-on:click="signin">登录</a>
             </div>
             <!-- /.col -->
           </div>
@@ -44,6 +44,7 @@
 <!--script src="http://code.jquery.com/jquery-latest.js"></script-->
 <script>
 /* eslint-disable */
+import * as axios from 'axios'
 export default {
   name: 'signinSchool',
   data() {
@@ -62,12 +63,21 @@ export default {
   },
   methods: {
     signin () {
-      $.get("http://10.2..", {username: this.username, password: this.password},function (data, stats) {
-        if (data)
-          this.$router.replace('/search')
-        else
-          alert("网络请求错误，请重试！")
-      })
+      $.ajax({
+        url: "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&ch=&tn=baiduerr&bar=&wd=pku",
+        type: "get",
+        data: {username: this.username, password: this.password},
+        async: true,
+        success: function (data, stats) {
+          console.log(data);
+          this.$router.replace('/search');
+        },
+        error: function () {
+          alert("网络请求错误，请重试！");
+        }
+      }).then(function (res) {
+        console.log(res);
+      });
     }
   }
 }

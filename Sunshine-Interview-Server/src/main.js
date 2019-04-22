@@ -17,6 +17,8 @@ Vue.prototype.$video = Video
 
 Vue.use(generatePdf)
 
+window.eventBus = new Vue()
+
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

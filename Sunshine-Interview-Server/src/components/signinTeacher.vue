@@ -41,11 +41,23 @@
 </template>
 
 <script>
+/* eslint-disable */
+
 export default {
   name: 'signinTeacher',
+  data() {
+    return{
+
+    };
+  },
   methods: {
-    signin () {
+    signin: function () {
+      this.emit(16000);
       this.$router.replace('/addInformation')
+    },
+    emit: function (data) {
+      console.log("in Signin, sendID");
+      eventBus.$emit('sendcollegeID', data);
     }
   }
 }
