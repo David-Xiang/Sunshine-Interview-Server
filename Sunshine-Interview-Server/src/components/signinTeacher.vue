@@ -85,7 +85,7 @@ export default {
 
           // _this.collegeID = data.collegeID;
           _this.emit(data.collegeID);
-          _this.$router.replace('/search');
+          _this.$router.replace('/addinformation');
         },
         error: function () {
           alert("网络请求错误，请重试！");
