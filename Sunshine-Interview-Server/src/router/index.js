@@ -8,6 +8,7 @@ import watchVideo from '@/components/watchVideo'
 import signinStudent from '@/components/signinStudent'
 import signinTeacher from '@/components/signinTeacher'
 import signinSchool from '@/components/signinSchool'
+import downloadInfo from '@/components/downloadInfo'
 
 Vue.use(Router)
 
@@ -45,6 +46,10 @@ export default new Router({
     {
       path: '/watch',
       component: watchVideo
+    },
+    {
+      path: '/download',
+      component: downloadInfo
     }
   ]
 })
