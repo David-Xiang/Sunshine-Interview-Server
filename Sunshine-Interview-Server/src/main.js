@@ -10,10 +10,13 @@ import 'font-awesome/css/font-awesome.css'
 import 'admin-lte/dist/css/AdminLTE.min.css'
 import 'admin-lte/dist/css/skins/_all-skins.min.css'
 import generatePdf from './components/utils/generatePdf'
+import globalVar from './components/utils/globalVar'
 import Video from 'video.js'
 import 'video.js/dist/video-js.css'
 
 Vue.prototype.$video = Video
+
+Vue.prototype.$globalVar = globalVar
 
 Vue.use(generatePdf)
 

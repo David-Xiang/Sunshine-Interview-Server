@@ -26,7 +26,7 @@
           </div>
           <!-- /.col -->
           <div class="col-xs-4">
-            <button v-on:click="signin" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" @click="signin">登录</button>
+            <button v-on:click="signin" type="button" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" @click="signin">登录</button>
           </div>
           <!-- /.col -->
         </div>
@@ -84,7 +84,8 @@ export default {
           }
 
           // _this.collegeID = data.collegeID;
-          _this.emit(data.collegeID);
+          // _this.emit(data.collegeID);
+          _this.$globalVar.setCollegeID(data.CollegeID);
           _this.$router.replace('/addinformation');
         },
         error: function () {
@@ -94,8 +95,8 @@ export default {
     },
 
     emit: function (data) {
-      console.log("in Signin, sendID");
-      eventBus.$emit('sendcollegeID', data);
+      console.log("in Signin, sendID",data);
+      eventBus.$emit('send collegeID', data);
     }
   }
 }

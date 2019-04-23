@@ -53,7 +53,7 @@
           <!-- /.box-body -->
 
           <div class="box-footer">
-            <button type="submit" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
+            <button type="button" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
           </div>
         </form>
       </div>
@@ -64,7 +64,6 @@
 
 <script>
 /* eslint-disable */
-import * as axios from 'axios'
 export default {
   name: 'add',
   data () {
@@ -98,11 +97,9 @@ export default {
     checkCrush: function(){
       return false;
       if (!this.teacherInfo instanceof Array || !this.studentInfo instanceof Array){
-        //alert("格式有误，请重新上传");
         return true;
       }
       if (this.teacherInfo.length === 0 || this.studentInfo.length === 0){
-        //alert("格式有误，请重新上传");
         return true;
       }
 
@@ -112,42 +109,27 @@ export default {
     },
     uploadInfo: function(){
       if (this.checkCrush()) {
-        alert("GG");
+        alert("格式有误，请重新上传");
         return;
       }
-      console.log("before post", this.teacherInfo);
+      alert("before post");
+      console.log(this.teacherInfo);
+      let _this = this;
 
       $.ajax({
-        url: "http://10.2.183.135/register",
+        url: "/apis/register",
         type:"post",
-        data:{student:this.studentInfo, teacher:this.teacherInfo},
+        data:JSON.stringify({student:_this.studentInfo, teacher:_this.teacherInfo}),
         success:function (data, stats) {
           //
+          console.log("yes!!!!!!");
         },
         error: function (error) {
           console.log(error);
         }
-      }).done(function (res) {
-        //
-      })
-
+      });
     },
     studentFile: function(event){
-      $.ajax({
-        url: "http://10.2.148.254/login",
-        type: "get",
-        data: {username: "hh", password: "hh"},
-        async: true,
-        success: function (data, stats) {
-          console.log("hhhhhhhhhhhhhhh");
-          this.$router.replace('/search');
-        },
-        error: function () {
-          alert("网络请求错误，请重试！");
-        }
-      }).then(function (res) {
-        console.log(res);
-      });
       let file = event.target.files[0];
       this.readFile(file, true);
       this.formatFile(true);
@@ -201,19 +183,20 @@ export default {
             console.log("Error!");
             return;
           }
+
+          res[key]['CollegeID'] = this.$globalVar.collegeID;
+          console.log(res[key]['CollegeID']);
           //console.log(res[key]);
         }
 
         if (isStu) {
           this.studentInfo = [].concat(res);
-          console.log("this.studentInfo modified:", this.studentInfo);
+          //console.log("this.studentInfo modified:", this.studentInfo);
         }
         else{
           this.teacherInfo = [].concat(res);
           console.log("this.teacherInfo modified:", this.teacherInfo);
         }
-
-
       };
       //reader.readAsBinaryString(file);
       reader.readAsArrayBuffer(file)
@@ -258,12 +241,12 @@ export default {
   },
   created() {
     eventBus.$on('sendcollegeID', function (data) {
-      console.log("in addInformation", data);
+      console.log("got collegeID in addInformation", data);
       this.collegeID = data;
     })
   },
   beforeDestroy() {
-    //eventBus.$off('sendcollegeID');
+    eventBus.$off('sendcollegeID');
   }
 }
 </script>

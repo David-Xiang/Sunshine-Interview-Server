@@ -44,25 +44,6 @@
 <!--script src="http://code.jquery.com/jquery-latest.js"></script-->
 <script>
 /* eslint-disable */
-// $("button").on('click', function () {
-//   $.ajax({
-//     url: "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&ch=&tn=baiduerr&bar=&wd=pku",
-//     type: "get",
-//     data: {username: this.username, password: this.password},
-//     async: true,
-//     success: function (data, stats) {
-//       console.log(data);
-//       this.$router.replace('/search');
-//     },
-//     error: function () {
-//       alert("网络请求错误，请重试！");
-//     }
-//   }).then(function (res) {
-//     console.log(res);
-//   });
-// });
-
-// $(document).on('click','.btn',function(){})
 export default {
   name: 'signinSchool',
   data() {
@@ -104,7 +85,8 @@ export default {
           }
 
           // _this.collegeID = data.collegeID;
-          _this.emit(data.collegeID);
+          // _this.emit(data.collegeID);
+          _this.$globalVar.setCollegeID(data.CollegeID);
           _this.$router.replace('/search');
         },
         error: function () {
@@ -114,7 +96,7 @@ export default {
     },
 
     emit: function (data) {
-      console.log("in Signin, sendID");
+      console.log("in Signin, sendID", data);
       eventBus.$emit('sendcollegeID', data);
     }
   }
