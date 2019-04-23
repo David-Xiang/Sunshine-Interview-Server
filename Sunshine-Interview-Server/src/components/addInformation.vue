@@ -201,64 +201,6 @@ export default {
       //reader.readAsBinaryString(file);
       reader.readAsArrayBuffer(file)
     },
-
-
-    // download: function (isStu) {
-    //   let URL = "";
-    //   console.log(isStu);
-    //   if (isStu)
-    //     URL = "/apis/download/studentInput1.xlsx";
-    //   else
-    //     URL = "/apis/download/teacherInput1.xlsx";
-    //   let _this = this;
-    //   $.ajax({
-    //     method: "get",
-    //     url:URL,
-    //
-    //     success: function (data, stats) {
-    //       let filename = 'poiImport.xlsx';
-    //       console.log(data);
-    //       _this.fileDownload(data, filename)
-    //     },
-    //     error: function (error) {
-    //       console.log(error);
-    //     }
-    //   });
-    //
-    //   // axios({
-    //   //   method: 'get',
-    //   //   url: '../../studentInput1.xlsx',
-    //   //   responseType: 'arraybuffer'
-    //   // })
-    //   //   .then(
-    //   //     function (response) {
-    //   //       let filename = 'poiImport.xlsx'
-    //   //       this.fileDownload(response.data, filename)
-    //   //     }.bind(this)
-    //   //   )
-    // },
-    // fileDownload: function (data, fileName) {
-    //   let blob = new Blob([data], {
-    //     type: 'application/octet-stream'
-    //   })
-    //   let filename = fileName || 'filename.xls'
-    //   if (typeof window.navigator.msSaveBlob !== 'undefined') {
-    //     window.navigator.msSaveBlob(blob, filename)
-    //   } else {
-    //     var blobURL = window.URL.createObjectURL(blob)
-    //     var tempLink = document.createElement('a')
-    //     tempLink.style.display = 'none'
-    //     tempLink.href = blobURL
-    //     tempLink.setAttribute('download', filename)
-    //     if (typeof tempLink.download === 'undefined') {
-    //       tempLink.setAttribute('target', '_blank')
-    //     }
-    //     document.body.appendChild(tempLink)
-    //     tempLink.click()
-    //     document.body.removeChild(tempLink)
-    //     window.URL.revokeObjectURL(blobURL)
-    //   }
-    // }
   },
   created() {
     eventBus.$on('sendcollegeID', function (data) {

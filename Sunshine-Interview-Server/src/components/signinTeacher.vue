@@ -13,7 +13,7 @@
           <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
         </div>
         <div class="form-group has-feedback">
-          <input v-on:keyup.enter="signin" v-model="password" type="password" class="form-control" placeholder="密码">
+          <input v-on:keyup.enter="signin" v-model="password" type="number" class="form-control" placeholder="密码">
           <span class="glyphicon glyphicon-lock form-control-feedback"></span>
         </div>
         <div class="row">
