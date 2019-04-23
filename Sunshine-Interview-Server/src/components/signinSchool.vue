@@ -9,11 +9,11 @@
         <p class="login-box-msg">高校及教育部入口</p>
 
           <div class="form-group has-feedback">
-            <input type="number" v-model="username" class="form-control" placeholder="用户名">
+            <input v-on:keyup.enter="signin" type="number" v-model="username" class="form-control" placeholder="用户名">
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
           </div>
           <div class="form-group has-feedback">
-            <input type="password" v-model="password" class="form-control" placeholder="密码">
+            <input v-on:keyup.enter="signin" type="password" v-model="password" class="form-control" placeholder="密码">
             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
           </div>
           <div class="row">
@@ -26,7 +26,7 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <a href="javascript:void(0);" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" v-on:click="signin">登录</a>
+              <button v-on:click="signin" type="button" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
             </div>
             <!-- /.col -->
           </div>
@@ -44,13 +44,32 @@
 <!--script src="http://code.jquery.com/jquery-latest.js"></script-->
 <script>
 /* eslint-disable */
-import * as axios from 'axios'
+// $("button").on('click', function () {
+//   $.ajax({
+//     url: "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&ch=&tn=baiduerr&bar=&wd=pku",
+//     type: "get",
+//     data: {username: this.username, password: this.password},
+//     async: true,
+//     success: function (data, stats) {
+//       console.log(data);
+//       this.$router.replace('/search');
+//     },
+//     error: function () {
+//       alert("网络请求错误，请重试！");
+//     }
+//   }).then(function (res) {
+//     console.log(res);
+//   });
+// });
+
+// $(document).on('click','.btn',function(){})
 export default {
   name: 'signinSchool',
   data() {
     return {
       username : "",
-      password : ""
+      password : "",
+      //collegeID : 0
     }
   },
   watch: {
@@ -63,21 +82,40 @@ export default {
   },
   methods: {
     signin () {
+      let _this = this;
       $.ajax({
-        url: "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&ch=&tn=baiduerr&bar=&wd=pku",
+        url: "/apis/login",
         type: "get",
-        data: {username: this.username, password: this.password},
+        data: {username: _this.username, password: _this.password},
         async: true,
         success: function (data, stats) {
-          console.log(data);
-          this.$router.replace('/search');
+
+          // data (type: JSONstring) like:{
+          //    permitted: true
+          //    collegeID: int
+          // }
+          data = JSON.parse(data);
+          console.log("receive request:", data);
+          if (data.permitted === false){
+            alert("密码或账号有误，请重试");
+            _this.password = '';
+            _this.username = '';
+            return;
+          }
+
+          // _this.collegeID = data.collegeID;
+          _this.emit(data.collegeID);
+          _this.$router.replace('/search');
         },
         error: function () {
           alert("网络请求错误，请重试！");
         }
-      }).then(function (res) {
-        console.log(res);
       });
+    },
+
+    emit: function (data) {
+      console.log("in Signin, sendID");
+      eventBus.$emit('sendcollegeID', data);
     }
   }
 }

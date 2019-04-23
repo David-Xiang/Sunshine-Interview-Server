@@ -9,11 +9,11 @@
         <p class="login-box-msg">考生入口</p>
 
           <div class="form-group has-feedback">
-            <input type="number" class="form-control" placeholder="用户名">
+            <input v-on:keyup.enter="signin" v-model="username" type="number" class="form-control" placeholder="用户名">
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
           </div>
           <div class="form-group has-feedback">
-            <input type="password" class="form-control" placeholder="密码">
+            <input v-on:keyup.enter="signin" v-model="password" type="password" class="form-control" placeholder="密码">
             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
           </div>
           <div class="row">
@@ -26,7 +26,7 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <button class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" @click="signin">登录</button>
+              <button v-on:click="signin" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" @click="signin">登录</button>
             </div>
             <!-- /.col -->
           </div>
@@ -43,9 +43,57 @@
 <script>
 export default {
   name: 'signinStudent',
+  data() {
+    return {
+      username : "",
+      password : "",
+      //collegeID : 0
+    }
+  },
+  watch: {
+    username: function (nValue, oValue) {
+      console.log("username changed")
+    },
+    password: function (nValue, oValue) {
+      console.log("passwprd changed")
+    }
+  },
   methods: {
     signin () {
-      this.$router.replace('/view')
+      let _this = this;
+      $.ajax({
+        url: "/apis/login",
+        type: "get",
+        data: {username: _this.username, password: _this.password},
+        async: true,
+        success: function (data, stats) {
+
+          // data (type: JSONstring) like:{
+          //    permitted: true
+          //    collegeID: int
+          // }
+          data = JSON.parse(data);
+          console.log("receive request:", data);
+          if (data.permitted === false){
+            alert("密码或账号有误，请重试");
+            _this.password = '';
+            _this.username = '';
+            return;
+          }
+
+          // _this.collegeID = data.collegeID;
+          _this.emit(data.collegeID);
+          _this.$router.replace('/search');
+        },
+        error: function () {
+          alert("网络请求错误，请重试！");
+        }
+      });
+    },
+
+    emit: function (data) {
+      console.log("in Signin, sendID");
+      eventBus.$emit('sendcollegeID', data);
     }
   }
 }

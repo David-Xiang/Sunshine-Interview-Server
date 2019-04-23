@@ -53,7 +53,7 @@
           <!-- /.box-body -->
 
           <div class="box-footer">
-            <a type="submit" v-on:click="uploadInfo" class="btn btn-danger">提交</a>
+            <button type="submit" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
           </div>
         </form>
       </div>
@@ -133,6 +133,21 @@ export default {
 
     },
     studentFile: function(event){
+      $.ajax({
+        url: "http://10.2.148.254/login",
+        type: "get",
+        data: {username: "hh", password: "hh"},
+        async: true,
+        success: function (data, stats) {
+          console.log("hhhhhhhhhhhhhhh");
+          this.$router.replace('/search');
+        },
+        error: function () {
+          alert("网络请求错误，请重试！");
+        }
+      }).then(function (res) {
+        console.log(res);
+      });
       let file = event.target.files[0];
       this.readFile(file, true);
       this.formatFile(true);
