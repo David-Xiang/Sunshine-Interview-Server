@@ -74,6 +74,13 @@ export default {
           // }
           data = JSON.parse(data);
           console.log("receive request:", data);
+          if (!data.hasOwnProperty("permitted") || !data.hasOwnProperty("CollegeID")){
+            alert("密码或账号有误，请重试");
+            _this.password = '';
+            _this.username = '';
+            return;
+          }
+
           if (data.permitted === false){
             alert("密码或账号有误，请重试");
             _this.password = '';

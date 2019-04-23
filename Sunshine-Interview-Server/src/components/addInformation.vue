@@ -31,11 +31,11 @@
             </div>
             <div class="form-group">
               <label>下载考生信息模板</label>
-              <a href="../../static/studentInput1.xlsx" download="studentInput1.xlsx.xlsx">下载</a>
+              <a href="/apis/download/studentInput1.xlsx" download="studentInputModel.xlsx">下载</a>
             </div>
             <div class="form-group">
               <label>下载考官信息模板</label>
-              <a href="../../static/teacherInput1.xlsx.xlsx" download="teacherInput1.xlsx">下载</a>
+              <a href="/apis/download/teacherInput1.xlsx" download="teacherInputModel.xlsx">下载</a>
             </div>
             <div class="form-group">
               <label for="exampleInputFile">上传考生信息</label>
@@ -113,7 +113,7 @@ export default {
         return;
       }
       alert("before post");
-      console.log(this.teacherInfo);
+      //console.log(this.teacherInfo, this.);
       let _this = this;
 
       $.ajax({
@@ -203,41 +203,62 @@ export default {
     },
 
 
-    download: function () {
-      axios({
-        method: 'get',
-        url: '../../studentInput1.xlsx',
-        responseType: 'arraybuffer'
-      })
-        .then(
-          function (response) {
-            let filename = 'poiImport.xlsx'
-            this.fileDownload(response.data, filename)
-          }.bind(this)
-        )
-    },
-    fileDownload: function (data, fileName) {
-      let blob = new Blob([data], {
-        type: 'application/octet-stream'
-      })
-      let filename = fileName || 'filename.xls'
-      if (typeof window.navigator.msSaveBlob !== 'undefined') {
-        window.navigator.msSaveBlob(blob, filename)
-      } else {
-        var blobURL = window.URL.createObjectURL(blob)
-        var tempLink = document.createElement('a')
-        tempLink.style.display = 'none'
-        tempLink.href = blobURL
-        tempLink.setAttribute('download', filename)
-        if (typeof tempLink.download === 'undefined') {
-          tempLink.setAttribute('target', '_blank')
-        }
-        document.body.appendChild(tempLink)
-        tempLink.click()
-        document.body.removeChild(tempLink)
-        window.URL.revokeObjectURL(blobURL)
-      }
-    }
+    // download: function (isStu) {
+    //   let URL = "";
+    //   console.log(isStu);
+    //   if (isStu)
+    //     URL = "/apis/download/studentInput1.xlsx";
+    //   else
+    //     URL = "/apis/download/teacherInput1.xlsx";
+    //   let _this = this;
+    //   $.ajax({
+    //     method: "get",
+    //     url:URL,
+    //
+    //     success: function (data, stats) {
+    //       let filename = 'poiImport.xlsx';
+    //       console.log(data);
+    //       _this.fileDownload(data, filename)
+    //     },
+    //     error: function (error) {
+    //       console.log(error);
+    //     }
+    //   });
+    //
+    //   // axios({
+    //   //   method: 'get',
+    //   //   url: '../../studentInput1.xlsx',
+    //   //   responseType: 'arraybuffer'
+    //   // })
+    //   //   .then(
+    //   //     function (response) {
+    //   //       let filename = 'poiImport.xlsx'
+    //   //       this.fileDownload(response.data, filename)
+    //   //     }.bind(this)
+    //   //   )
+    // },
+    // fileDownload: function (data, fileName) {
+    //   let blob = new Blob([data], {
+    //     type: 'application/octet-stream'
+    //   })
+    //   let filename = fileName || 'filename.xls'
+    //   if (typeof window.navigator.msSaveBlob !== 'undefined') {
+    //     window.navigator.msSaveBlob(blob, filename)
+    //   } else {
+    //     var blobURL = window.URL.createObjectURL(blob)
+    //     var tempLink = document.createElement('a')
+    //     tempLink.style.display = 'none'
+    //     tempLink.href = blobURL
+    //     tempLink.setAttribute('download', filename)
+    //     if (typeof tempLink.download === 'undefined') {
+    //       tempLink.setAttribute('target', '_blank')
+    //     }
+    //     document.body.appendChild(tempLink)
+    //     tempLink.click()
+    //     document.body.removeChild(tempLink)
+    //     window.URL.revokeObjectURL(blobURL)
+    //   }
+    // }
   },
   created() {
     eventBus.$on('sendcollegeID', function (data) {
