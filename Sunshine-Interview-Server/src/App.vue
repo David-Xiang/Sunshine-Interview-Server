@@ -140,7 +140,7 @@
         Anything you want
       </div>
       <!-- Default to the left -->
-      <strong>Copyright &copy; 2016 <a href="#">Company</a>.</strong> All rights reserved.
+      <strong>Copyright &copy; 2019 <a href="#">阳光面试小组</a>.</strong> All rights reserved.
     </footer>
 
     <!-- Control Sidebar -->
@@ -229,7 +229,6 @@ export default {
   data () {
     return {
       userimg: require('./assets/bigbrother.png')
-
     }
   },
   methods: {
