@@ -18,35 +18,21 @@
     </div>
     <div class="box-body">
       <div class="form-group">
-        <label>时间范围</label>
-
-        <div class="input-group">
-          <div class="input-group-addon">
-            <i class="fa fa-clock-o"></i>
-          </div>
-          <input type="text" class="form-control pull-right" id="reservationtime" placeholder="11：00 5/12/2019 ~ 12：00 5/12/2019">
-        </div>
-        <!-- /.input group -->
-      </div>
-      <div class="form-group">
-        <label>参与者</label>
+        <label>学校编码</label>
       <div class="input-group">
         <span class="input-group-addon">@</span>
-        <input type="text" class="form-control" placeholder="参与者">
-      </div>
-      </div>
-      <div class="form-group">
-        <label>考场号</label>
-      <div class="input-group">
-        <div class="input-group-addon">
-          <i class="fa fa-location-arrow"></i>
-        </div>
-        <input type="text" class="form-control pull-right" id = "考场号">
+        <input type="number" class="form-control" placeholder="请填写学校编码">
       </div>
     </div>
-      <div class="box-footer">1
+      <div class="form-group">
+        <label>参与者id</label>
+        <div class="input-group">
+          <span class="input-group-addon">@</span>
+          <input type="number" class="form-control" placeholder="请填写考官或考生id">
+        </div>
+      </div>
+      <div class="box-footer">
         <router-link to="/watch">
-          <i class="fa fa-link"></i>
           <button type="submit" class="btn btn-danger">查询</button>
         </router-link>
       </div>
