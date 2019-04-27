@@ -90,9 +90,14 @@ export default {
             return;
           }
 
-          // _this.collegeID = data.collegeID;
-          // _this.emit(data.collegeID);
           _this.$globalVar.setCollegeID(data.CollegeID);
+          _this.$globalVar.setStorage(
+            {
+              "collegeID": data.CollegeID,
+              "loginState": "school",
+            }
+          );
+
           _this.$router.replace('/search');
         },
         error: function () {
@@ -100,11 +105,6 @@ export default {
         }
       });
     },
-
-    emit: function (data) {
-      console.log("in Signin, sendID", data);
-      eventBus.$emit('sendcollegeID', data);
-    }
   }
 }
 </script>

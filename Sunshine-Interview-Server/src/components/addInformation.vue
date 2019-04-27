@@ -121,8 +121,8 @@ export default {
         type:"post",
         data:JSON.stringify({student:_this.studentInfo, teacher:_this.teacherInfo}),
         success:function (data, stats) {
-          //
           console.log("yes!!!!!!");
+          _this.$router.replace('/download');
         },
         error: function (error) {
           console.log(error);
@@ -132,20 +132,10 @@ export default {
     studentFile: function(event){
       let file = event.target.files[0];
       this.readFile(file, true);
-      this.formatFile(true);
     },
     teacherFile: function(event){
       let file = event.target.files[0];
       this.readFile(file, false);
-      this.formatFile(false);
-    },
-    formatFile: function(isStu){
-      let res;
-      if (isStu)
-        res = this.studentInfo;
-      else
-        res = this.teacherInfo;
-
     },
     readFile : function(file, isStu) {
       let reader = new FileReader();
@@ -201,15 +191,6 @@ export default {
       //reader.readAsBinaryString(file);
       reader.readAsArrayBuffer(file)
     },
-  },
-  created() {
-    eventBus.$on('sendcollegeID', function (data) {
-      console.log("got collegeID in addInformation", data);
-      this.collegeID = data;
-    })
-  },
-  beforeDestroy() {
-    eventBus.$off('sendcollegeID');
   }
 }
 </script>

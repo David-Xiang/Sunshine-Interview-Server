@@ -99,6 +99,16 @@ export default {
           _this.$globalVar.setExam(data.exam);
           _this.$globalVar.setTime(data.time);
           _this.$globalVar.setBlockID(data.blockID);
+          _this.$globalVar.setStorage(
+            {
+              "collegeID": data.CollegeID,
+              "loginState": "student",
+              "studentName": data.name,
+              "exam": data.exam,
+              "time": data.time,
+              'blockID': data.blockID
+            }
+          );
           _this.$router.replace('/view');
         },
         error: function () {
@@ -106,11 +116,6 @@ export default {
         }
       });
     },
-
-    emit: function (data) {
-      console.log("in Signin, sendID", data);
-      eventBus.$emit('sendcollegeID', data);
-    }
   }
 }
 </script>

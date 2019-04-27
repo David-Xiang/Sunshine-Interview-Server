@@ -24,6 +24,35 @@ window.eventBus = new Vue()
 
 Vue.config.productionTip = false
 
+router.beforeEach((to, from, next)=>{
+  if (to.name === "signinSchool" && sessionStorage.getItem("loginState") === "school")
+    next({
+      path:"/search"
+    });
+  else if (to.name === "signinTeacher" && sessionStorage.getItem("loginState") === "teacher")
+    next({
+      path:"/addInformation"
+    });
+  else if (to.name === "signinStudent" && sessionStorage.getItem("loginState") === "student")
+    next({
+      path:"/view"
+    });
+
+  else if (to.meta.reqSchoolLogin && sessionStorage.getItem("loginState") !== "school")
+    next({
+      path:"/signinSchool",
+    });
+  else if (to.meta.reqTeacherLogin && sessionStorage.getItem("loginState") !== "teacher")
+    next({
+      path:"signinTeacher",
+    });
+  else if (to.meta.reqStudentLogin && sessionStorage.getItem("loginState") !== "student")
+    next({
+      path:"/signinStudent",
+    });
+  else
+    next();
+})
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

@@ -21,7 +21,7 @@
         <div class="box-header with-border">
           <h3 class="box-title">上传成功！</h3>
         </div>
-        <div style="text-align: center;">请下载<a href="../../static/validation.xlsx" download="validation.xlsx">所创建考试考场号及验证码</a></div>
+        <div style="text-align: center;">请下载<a v-on:click="download">所创建考试考场号及验证码</a></div>
       </div>
     </section>
     <!-- /.content -->
@@ -30,7 +30,80 @@
 
 <script>
 export default {
-  name: 'downloadInfo'
+  name: 'downloadInfo',
+  data (){
+    return {
+      validationCode: {}
+    }
+  },
+  methods: {
+    download: function () {
+      // this.validationCode = {
+      //   legal: true,
+      //   info:[
+      //     {
+      //       InterviewSiteID:6600,
+      //       InterviewSiteName:"燕园楼816教室",
+      //       Password:"4742"
+      //     },
+      //     {
+      //       InterviewSiteID:6601,
+      //       InterviewSiteName:"第九教学楼305教室",
+      //       Password:"7621"
+      //     },
+      //   ]
+      // };
+
+      console.log("download called!");
+      console.log(this.validationCode["legal"]);
+      if (this.validationCode["legal"] !== "true")
+        return;
+      let resStr = "";
+      resStr += "InterviewSiteID, InterviewSiteName, Password\r\n";
+      for (let i = 0; i < this.validationCode.info.length; i++){
+        resStr += this.validationCode.info[i]["InterviewSiteID"];
+        resStr += ", ";
+        resStr += this.validationCode.info[i]["InterviewSiteName"];
+        resStr += ", ";
+        resStr += this.validationCode.info[i]["Password"];
+        resStr += "\r\n";
+      }
+
+      console.log("generate string", resStr);
+
+      this.downloadFile(resStr, "ValidationCode.csv");
+    },
+
+    downloadFile: function(content, filename){
+      let newLink = document.createElement("a");
+      newLink.download = filename;
+      newLink.style.display = "none";
+      content = "\ufeff" + content; // 否则用excel打开这个文件中文会乱码
+      let blob = new Blob([content],  { type: 'text/csv,charset=UTF-8', endings: 'native' });
+      newLink.href = window.URL.createObjectURL(blob);
+      document.body.appendChild(newLink);
+      newLink.click();
+      document.body.removeChild(newLink);
+      window.URL.revokeObjectURL(blob);
+    }
+  },
+  mounted() {
+
+    let _this = this;
+    $.ajax({
+      url: "/apis/sitetable?collegeid=" + _this.$globalVar.collegeID,
+      type: "get",
+      //data: JSON.stringify({collegeid:_this.$globalVar.collegeID}),
+      success: function (data, stats) {
+        _this.validationCode = JSON.parse(data);
+        console.log(_this.validationCode);
+      },
+      error: function (error) {
+        alert("网络请求出错，请重试");
+        console.log(error);
+      }
+    })
+  }
 }
 </script>
 

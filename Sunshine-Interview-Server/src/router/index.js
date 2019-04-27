@@ -21,35 +21,50 @@ export default new Router({
     },
     {
       path: '/addinformation',
-      component: addInformation
+      component: addInformation,
+      meta:{
+        reqTeacherLogin:true
+      }
     },
     {
       path: '/signinStudent',
+      name: 'signinStudent',
       component: signinStudent
     },
     {
       path: '/signinTeacher',
+      name: 'signinTeacher',
       component: signinTeacher
     },
     {
       path: '/signinSchool',
+      name: 'signinSchool',
       component: signinSchool
     },
     {
       path: '/view',
-      component: viewCertificate
+      component: viewCertificate,
+      meta:{
+        reqStudentLogin:true
+      }
     },
     {
       path: '/search',
-      component: searchVideo
+      component: searchVideo,
+      meta:{
+        reqSchoolLogin:true
+      }
     },
     {
       path: '/watch',
-      component: watchVideo
+      component: watchVideo,
+      meta:{
+        reqSchoolLogin:true
+      }
     },
     {
       path: '/download',
-      component: downloadInfo
+      component: downloadInfo,
     }
   ]
 })

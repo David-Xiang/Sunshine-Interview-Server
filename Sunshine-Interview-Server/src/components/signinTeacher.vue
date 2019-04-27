@@ -76,12 +76,15 @@ export default {
           // }
           data = JSON.parse(data);
           console.log("receive request:", data);
+          /*
           if (!data.hasOwnProperty("permitted") || !data.hasOwnProperty("CollegeID")){
             alert("密码或账号有误，请重试");
             _this.password = '';
             _this.username = '';
             return;
           }
+
+           */
 
           if (data.permitted === false){
             alert("密码或账号有误，请重试");
@@ -90,9 +93,14 @@ export default {
             return;
           }
 
-          // _this.collegeID = data.collegeID;
-          // _this.emit(data.collegeID);
+
           _this.$globalVar.setCollegeID(data.CollegeID);
+          _this.$globalVar.setStorage(
+            {
+              "collegeID": data.CollegeID,
+              "loginState": "teacher",
+            }
+          );
           _this.$router.replace('/addinformation');
         },
         error: function () {
@@ -100,11 +108,6 @@ export default {
         }
       });
     },
-
-    emit: function (data) {
-      console.log("in Signin, sendID",data);
-      eventBus.$emit('send collegeID', data);
-    }
   }
 }
 </script>

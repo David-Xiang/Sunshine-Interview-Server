@@ -32,5 +32,43 @@ export default {
 
   resetCollegeID: function (arg) {
     this.collegeID = -1;
+  },
+
+  setStorage: function (content) {
+    /*
+    * content like
+    * {
+    *   key(str): value(str),
+    *   ...
+    * }
+     */
+    for (let key in content)
+      sessionStorage.setItem(key, content[key]);
+  },
+
+  getStorage: function (key) {
+    /*
+    * key(str)
+     */
+    if (sessionStorage.getItem(key) != null)
+      return sessionStorage.getItem(key);
+    else
+      return "";
+  },
+
+  checkLogin: function () {
+    return this.getStorage("collegeID") !== "";
+  },
+
+  checkIfTeacher: function () {
+    return this.getStorage("loginState") === "teacher";
+  },
+
+  checkIfStudent: function () {
+    return this.getStorage("loginState") === "student";
+  },
+
+  checkIfSchool: function () {
+    return this.getStorage("loginState") === "school";
   }
 }
