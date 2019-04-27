@@ -66,13 +66,12 @@ export default {
   name: 'watchVideo',
   data () {
     return {
-      vList: ['http://video.chinanews.com/flv/gg/170918/1.mp4',
-        'http://videoclips.chinanews.com/oss/onair/zxw/szuser/9d28c42f4e654ed2baffe606f0b9ef48_37.mp4',
-        'http://video.chinanews.com/flv/2018/06/29/400/98482_web.mp4'],
+      vList: [],
       currentVideoIndex: 0
     }
   },
   mounted: function () {
+    this.vList = this.$globalVar.vList
     this.initVideo();
   },
   computed : {

@@ -21,11 +21,6 @@
         </div>
         <!-- /.col -->
       </div>
-      <!--div class="row">
-        <div class="pull-left image" id="certificate">
-          <img :src= userimg alt="User Image" height="600px">
-        </div>
-      </div-->
       <div class="col-lg-6 col-xs-6" id="certificate">
         <img src="../static/certificate.jpg" style="width: auto; height: 800px;" id="background">
         <h3 id="name"> {{studentName}} </h3>
@@ -62,6 +57,11 @@ export default {
     }
   },
   mounted: function () {
+    this.studentName = this.$globalVar.studentName
+    this.exam = this.$globalVar.exam
+    this.time = this.$globalVar.time
+    this.durance = this.$globalVar.time
+    this.blockID = this.$globalVar.blockID
     document.getElementById('name').style.position = 'absolute'
     document.getElementById('name').style.top = '260px'
     document.getElementById('name').style.left = '330px'

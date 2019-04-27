@@ -41,12 +41,16 @@
 </template>
 
 <script>
+/* eslint-disable */
 export default {
   name: 'signinStudent',
   data() {
     return {
       name : "",
       id : "",
+      exam: '',
+      time: '',
+      blockID: ''
       //collegeID : 0
     }
   },
@@ -91,6 +95,10 @@ export default {
           // _this.collegeID = data.collegeID;
           // _this.emit(data.collegeID);
           _this.$globalVar.setCollegeID(data.CollegeID);
+          _this.$globalVar.setStudentName(data.name);
+          _this.$globalVar.setExam(data.exam);
+          _this.$globalVar.setTime(data.time);
+          _this.$globalVar.setBlockID(data.blockID);
           _this.$router.replace('/view');
         },
         error: function () {

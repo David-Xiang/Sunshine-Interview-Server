@@ -21,20 +21,20 @@
         <label>学校编码</label>
       <div class="input-group">
         <span class="input-group-addon">@</span>
-        <input type="number" class="form-control" placeholder="请填写学校编码">
+        <input type="number" class="form-control" v-model="CollegeID" placeholder="请填写学校编码">
       </div>
     </div>
       <div class="form-group">
         <label>参与者id</label>
         <div class="input-group">
           <span class="input-group-addon">@</span>
-          <input type="number" class="form-control" placeholder="请填写考官或考生id">
+          <input type="number" class="form-control" v-model="StudentID" placeholder="请填写考官或考生id">
         </div>
       </div>
       <div class="box-footer">
-        <router-link to="/watch">
-          <button type="submit" class="btn btn-danger">查询</button>
-        </router-link>
+        <!--router-link to="/watch"-->
+          <button type="submit" class="btn btn-danger" v-on:click="search()">查询</button>
+        <!--/router-link-->
       </div>
     <!-- /.box-body -->
   </div>
@@ -44,8 +44,57 @@
 </template>
 
 <script>
+/* eslint-disable */
 export default {
-  name: 'searchVideo'
+  name: 'searchVideo',
+  data () {
+    return {
+      StudentID: '',
+      CollegeID: '',
+      vList: ['http://video.chinanews.com/flv/gg/170918/1.mp4',
+        'http://videoclips.chinanews.com/oss/onair/zxw/szuser/9d28c42f4e654ed2baffe606f0b9ef48_37.mp4',
+        'http://video.chinanews.com/flv/2018/06/29/400/98482_web.mp4']
+    }
+  },
+  methods: {
+    s() {this.$globalVar.setvList(this.vList); this.$router.replace('/watch');},
+    search () {
+      let _this = this;
+      $.ajax({
+        url: "/apis/search",
+        type: "get",
+        data: {StudentID: _this.StudentID, CollegeID: _this.CollegeID, vList: _this.vList},
+        async: true,
+        success: function (data, stats) {
+          data = JSON.parse(data);
+          console.log("receive video list request:", data);
+          if (!data.hasOwnProperty("permitted") || !data.hasOwnProperty("CollegeID")){
+            alert("考官/考生ID或学校编码有误，请重试");
+            _this.StudentID = '';
+            _this.CollegeID = '';
+            return;
+          }
+          if (data.permitted === false){
+            alert("考官/考生ID或学校编码有误，请重试");
+            _this.StudentID = '';
+            _this.CollegeID = '';
+            return;
+          }
+          _this.$globalVar.setvList(data.vList);
+          _this.$router.replace('/watch');
+        },
+        error: function () {
+          alert("网络请求错误，请重试！");
+        }
+      });
+      // this.$root.eventHunb.$emit("eventName",this.vList)
+    },
+
+    emit: function (data) {
+      console.log('in search video', data)
+      // eventBus.$emit('sendcollegeID', data);
+    }
+  }
 }
 </script>
 
