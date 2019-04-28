@@ -33,8 +33,8 @@
                   <!-- inner menu: contains the messages -->
                   <ul class="menu">
                     <li><!-- start message -->
-                      <a href="#">
-                        <div class="pull-left">
+                      <router-link to="/contact">
+                      <div class="pull-left">
                           <!-- User Image -->
                           <img :src= userimg class="img-circle" alt="User Image" style="background-size: auto">
                         </div>
@@ -45,7 +45,7 @@
                         </h4>
                         <!-- The message -->
                         <p>点击获取服务支持</p>
-                      </a>
+                      </router-link>
                     </li>
                     <!-- end message -->
                   </ul>
