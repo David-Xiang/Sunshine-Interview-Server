@@ -50,7 +50,6 @@ export default {
     return {
       username : "",
       password : "",
-      //collegeID : 0
     }
   },
   watch: {
@@ -73,17 +72,11 @@ export default {
 
           // data (type: JSONstring) like:{
           //    permitted: true
-          //    collegeID: int
+          //    CollegeID: int
           // }
           data = JSON.parse(data);
           console.log("receive request:", data);
-          if (!data.hasOwnProperty("permitted") || !data.hasOwnProperty("CollegeID")){
-            alert("密码或账号有误，请重试");
-            _this.password = '';
-            _this.username = '';
-            return;
-          }
-          if (data.permitted === false){
+          if (!data.hasOwnProperty("permitted") || !data.hasOwnProperty("CollegeID") || data.permitted === false){
             alert("密码或账号有误，请重试");
             _this.password = '';
             _this.username = '';

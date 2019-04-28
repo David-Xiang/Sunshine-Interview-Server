@@ -88,8 +88,12 @@ export default {
     }
   },
   mounted() {
-
     let _this = this;
+    if (_this.$globalVar.getStorage("uploaded") !== "true"){
+      alert("您还未完成上传信息任务，无法下载！");
+      _this.$router.replace('/addinformation');
+    }
+
     $.ajax({
       url: "/apis/sitetable?collegeid=" + _this.$globalVar.collegeID,
       type: "get",

@@ -5,6 +5,12 @@ export default {
   exam: '',
   time: '',
   blockID: '',
+  /*
+  * we will store following information in sessionStorage:
+  * "collegeID" :
+  * "loginState" : enum{"teacher", "student", "school"}
+  * "uploaded": enum{"true", "false"}
+   */
 
   setCollegeID: function(arg){
     this.collegeID = arg;

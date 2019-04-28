@@ -87,24 +87,87 @@ export default {
       if (datelist[1].length === 1)
         datelist[1] = '0' + datelist[1];
       datelist[2] = "20" + datelist[2];
-      let newDate = datelist[2] + "-" + datelist[0] + "-" + datelist[1];
+      let newDate = datelist[2] + datelist[0] + datelist[1];
       let timelist = time.split(":");
       if (timelist[0].length === 1)
         timelist[0] = "0" + timelist[0];
-      let newTime = timelist[0] + ":" + timelist[1];
-      return newDate + " " + newTime;
+      let newTime = timelist[0] + timelist[1];
+      return parseInt(newDate + newTime);
     },
+
+    cmp: function(a, b)
+    {
+      if (a["StartTime"] !== b["StartTime"])
+        return a["StartTime"] - b["StartTime"];
+      if (a["EndTime"] !== b["EndTime"])
+        return a["EndTime"] - b["EndTime"];
+      return a["InterviewSiteName"] > b["InterviewSiteName"];
+    },
+
     checkCrush: function(){
-      return false;
-      if (!this.teacherInfo instanceof Array || !this.studentInfo instanceof Array){
-        return true;
-      }
-      if (this.teacherInfo.length === 0 || this.studentInfo.length === 0){
-        return true;
-      }
+      /*
+      CollegeID: 66
+      DeptName: "物理"
+      Email: "1004733437@zz.edu.cn"
+      EndTime: "2019-06-12 14:50"
+      InterviewSiteName: "未名楼102教室"
+      PhoneNumber: "18812714365"
+      StartTime: "2019-06-12 14:00"
+      TeacherID: "12990002"
+      TeacherName: "沈英英"
+       */
+      //return false;
+      // if (!this.teacherInfo instanceof Array || !this.studentInfo instanceof Array){
+      //   return true;
+      // }
+      // if (this.teacherInfo.length === 0 || this.studentInfo.length === 0){
+      //   return true;
+      // }
 
       let tmpT = [].concat(this.teacherInfo);
       let tmpS = [].concat(this.studentInfo);
+
+      tmpT.sort(this.cmp);
+      tmpS.sort(this.cmp);
+
+      console.log("compare!!!!");
+      console.log(JSON.stringify(tmpT));
+      console.log(JSON.stringify(tmpS));
+
+      let Tst = 0;
+      let j = 0;
+      for (let i = 1; i < tmpT.length; i++) {
+        if (tmpT[i]["StartTime"] === tmpT[Tst]["StartTime"] &&
+          tmpT[i]["EndTime"] !== tmpT[Tst]["EndTime"] &&
+          tmpT[i]["InterviewSiteName"] === tmpT[Tst]["InterviewSiteName"]) {
+
+          console.log(1, Tst, i);
+          console.log(tmpT[Tst]);
+          console.log(tmpT[i]);
+          return true;
+        }
+        else if(tmpT[i]["StartTime"] !== tmpT[Tst]["StartTime"] ||
+          tmpT[i]["EndTime"] !== tmpT[Tst]["EndTime"] ||
+          tmpT[i]["InterviewSiteName"] !== tmpT[Tst]["InterviewSiteName"]){
+          let matchFlag = false;
+          for (; j < tmpS.length; j++) {
+            if (tmpS[j]["StartTime"] === tmpT[Tst]["StartTime"] &&
+              tmpS[j]["EndTime"] === tmpT[Tst]["EndTime"] &&
+              tmpS[j]["InterviewSiteName"] === tmpT[Tst]["InterviewSiteName"])
+              matchFlag = true;
+            else {
+              break;
+            }
+          }
+          if (!matchFlag){
+            console.log(1, Tst, j);
+            console.log(tmpT[Tst]);
+            console.log(tmpS[j]);
+            return true;
+          }
+          Tst = i;
+        }
+      }
       return false;
     },
     uploadInfo: function(){
@@ -112,7 +175,7 @@ export default {
         alert("格式有误，请重新上传");
         return;
       }
-      alert("before post");
+      //alert("before post");
       //console.log(this.teacherInfo, this.);
       let _this = this;
 
@@ -122,6 +185,9 @@ export default {
         data:JSON.stringify({student:_this.studentInfo, teacher:_this.teacherInfo}),
         success:function (data, stats) {
           console.log("yes!!!!!!");
+          _this.$globalVar.setStorage({
+            "uploaded": "true"
+          });
           _this.$router.replace('/download');
         },
         error: function (error) {
