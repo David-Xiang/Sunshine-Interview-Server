@@ -31,8 +31,8 @@
           <!-- /.col -->
         </div>
 
-        <router-link to="/contact"><span>忘记密码</span></router-link><br>
-        <router-link to="/contact"><span>注册新账号</span></router-link>
+        <a href="#">忘记密码</a><br>
+        <a href="#" class="text-center">注册新账号</a>
 
       </div>
       <!-- /.login-box-body -->
@@ -41,75 +41,72 @@
 </template>
 
 <script>
-/* eslint-disable */
-import { JSEncrypt } from 'jsencrypt'
-export default {
-  name: 'signinTeacher',
-  data() {
-    return {
-      username : "",
-      password : "",
-      //collegeID : 0
-    }
-  },
-  watch: {
-    username: function (nValue, oValue) {
-      console.log("username changed")
+  /* eslint-disable */
+  import { JSEncrypt } from 'jsencrypt'
+  export default {
+    name: 'signinTeacher',
+    data() {
+      return {
+        username : "",
+        password : "",
+        //collegeID : 0
+      }
     },
-    password: function (nValue, oValue) {
-      console.log("passwprd changed")
-    }
-  },
-  methods: {
-    signin () {
-      let _this = this;
-      let encryptor = new JSEncrypt();
-      let secretKey = "SunshineInterview";
-      $.ajax({
-        url: "/apis/login",
-        type: "get",
-        data: {
-          username: _this.username,
-          password: encryptor.encrypt(_this.password, secretKey, 256),
-          // password: _this.password,
-          loginState: "teacher"
-        },
-        async: true,
-        success: function (data, stats) {
+    watch: {
+      username: function (nValue, oValue) {
+        console.log("username changed")
+      },
+      password: function (nValue, oValue) {
+        console.log("passwprd changed")
+      }
+    },
+    methods: {
+      signin () {
+        let _this = this;
+        let encryptor = new JSEncrypt();
+        let secretKey = "SunshineInterview";
+        $.ajax({
+          url: "/apis/login",
+          type: "post",
+          data: JSON.stringify({
+            username: _this.username,
+            // password: encryptor.encrypt(_this.password, secretKey, 256),
+            password: _this.password,
+            loginState: "teacher"
+          }),
+          async: true,
+          success: function (data, stats) {
 
-          // data (type: JSONstring) like:{
-          //    permitted: true
-          //    collegeID: int
-          // }
-          data = JSON.parse(data);
-          console.log("receive request:", data);
-          if (!data.hasOwnProperty("permitted") || !data.hasOwnProperty("CollegeID") || data.permitted === false){
-            alert("密码或账号有误，请重试");
-            _this.password = '';
-            _this.username = '';
-            return;
-          }
-
-          _this.$globalVar.setCollegeID(data.CollegeID);
-          _this.$globalVar.setStorage(
-            {
-              "collegeID": data.CollegeID,
-              "loginState": "teacher",
+            // data (type: JSONstring) like:{
+            //    permitted: true
+            //    collegeID: int
+            // }
+            data = JSON.parse(data);
+            console.log("receive request:", data);
+            if (!data.hasOwnProperty("result") || !data.hasOwnProperty("CollegeID") || data.result === "false"){
+              alert("密码或账号有误，请重试");
+              _this.password = '';
+              _this.username = '';
+              return;
             }
-          );
-          document.getElementById("identification").innerHTML="欢迎您，" + _this.$globalVar.collegeID;
-          document.getElementById("status").innerHTML=_this.$globalVar.getStorage("loginStatus");
-          document.getElementById("statusLight").setAttribute("class", "fa fa-circle text-success");
-          _this.$router.replace('/addinformation');
-        },
-        error: function () {
-          alert("网络请求错误，请重试！");
-        }
-      });
 
-    },
+            _this.$globalVar.setCollegeID(data.CollegeID);
+            _this.$globalVar.setStorage(
+              {
+                "collegeID": data.CollegeID,
+                "loginState": "teacher",
+              }
+            );
+            _this.$router.replace('/addinformation');
+          },
+          error: function () {
+            alert("网络请求错误，请重试！");
+          }
+        });
+
+      },
+    }
   }
-}
 </script>
 
 <style scoped>

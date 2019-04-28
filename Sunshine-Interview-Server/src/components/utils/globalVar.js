@@ -3,7 +3,7 @@ export default {
   vList: [],
   studentName: '',
   exam: '',
-  StartTime: '',
+  startTime: '',
   EndTime: '',
   blockID: '',
   /*
