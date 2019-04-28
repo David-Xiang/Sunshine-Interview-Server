@@ -25,8 +25,8 @@
         <img src="../static/certificate.jpg" style="width: auto; height: 800px;" id="background">
         <h3 id="name"> {{studentName}} </h3>
         <h3 id="exam"> {{exam}} </h3>
-        <h3 id="time"> {{time}} </h3>
-        <h3 id="durance"> {{durance}} </h3>
+        <h3 id="time"> {{StartTime}} </h3>
+        <h3 id="durance"> {{EndTime}} </h3>
         <h3 id="blockID"> {{blockID}} </h3>
       </div>
       <div class="row no-print">
@@ -50,18 +50,18 @@ export default {
     return {
       studentName: '马冬梅',
       exam: '博雅计划面试',
-      time: '2019/06/25',
-      durance: '8:30 - 9:00',
+      StartTime: '2019/06/25',
+      EndTime: '8:30 - 9:00',
       blockID: '00101101',
       userimg: require('../static/certificate.jpg')
     }
   },
   mounted: function () {
-    this.studentName = this.$globalVar.studentName
-    this.exam = this.$globalVar.exam
-    this.time = this.$globalVar.time
-    this.durance = this.$globalVar.time
-    this.blockID = this.$globalVar.blockID
+    this.studentName = this.$globalVar.getStorage('studentName')
+    this.exam = this.$globalVar.getStorage('exam')
+    this.StartTime = this.$globalVar.getStorage('StartTime')
+    this.EndTime = this.$globalVar.getStorage('EndTime')
+    this.blockID = this.$globalVar.getStorage('blockID')
     document.getElementById('name').style.position = 'absolute'
     document.getElementById('name').style.top = '260px'
     document.getElementById('name').style.left = '330px'

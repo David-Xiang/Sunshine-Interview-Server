@@ -3,7 +3,8 @@ export default {
   vList: [],
   studentName: '',
   exam: '',
-  time: '',
+  StartTime: '',
+  EndTime: '',
   blockID: '',
   /*
   * we will store following information in sessionStorage:
