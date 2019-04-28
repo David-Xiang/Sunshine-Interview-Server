@@ -44,6 +44,7 @@
 <!--script src="http://code.jquery.com/jquery-latest.js"></script-->
 <script>
 /* eslint-disable */
+import { JSEncrypt } from 'jsencrypt'
 export default {
   name: 'signinSchool',
   data() {
@@ -63,10 +64,23 @@ export default {
   methods: {
     signin () {
       let _this = this;
+      let encryptor = new JSEncrypt();
+      let secretKey = "SunshineInterview";
       $.ajax({
         url: "/apis/login",
         type: "get",
-        data: {username: _this.username, password: _this.password},
+        data: {
+          username: _this.username,
+          password: encryptor.encrypt(_this.password, secretKey, 256),
+          /*
+          * nodejs端解密方法:
+          * let encryptor = require('encryptjs');
+          * secretKey = "SunshineInterview";
+          * let decipher = encryptor.decrypt(cipherText,secretkey,256);
+           */
+          // password: _this.password,
+          loginState: "school"
+        },
         async: true,
         success: function (data, stats) {
 

@@ -42,7 +42,7 @@
 
 <script>
 /* eslint-disable */
-
+import { JSEncrypt } from 'jsencrypt'
 export default {
   name: 'signinTeacher',
   data() {
@@ -63,10 +63,17 @@ export default {
   methods: {
     signin () {
       let _this = this;
+      let encryptor = new JSEncrypt();
+      let secretKey = "SunshineInterview";
       $.ajax({
         url: "/apis/login",
         type: "get",
-        data: {username: _this.username, password: _this.password},
+        data: {
+          username: _this.username,
+          password: encryptor.encrypt(_this.password, secretKey, 256),
+          // password: _this.password,
+          loginState: "teacher"
+        },
         async: true,
         success: function (data, stats) {
 

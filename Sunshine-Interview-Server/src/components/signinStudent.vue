@@ -42,6 +42,7 @@
 
 <script>
 /* eslint-disable */
+import { JSEncrypt } from 'jsencrypt'
 export default {
   name: 'signinStudent',
   data() {
@@ -51,24 +52,32 @@ export default {
       exam: '',
       time: '',
       blockID: ''
-      //collegeID : 0
     }
   },
   watch: {
-    username: function (nValue, oValue) {
+    name: function (nValue, oValue) {
       console.log("username changed")
     },
-    password: function (nValue, oValue) {
+    id: function (nValue, oValue) {
       console.log("passwprd changed")
     }
   },
   methods: {
     signin () {
       let _this = this;
+      let encryptor = new JSEncrypt();
+      let secretKey = "SunshineInterview";
+      console.log("before encrypt:", _this.id);
+      console.log("after encrypt", encryptor.encrypt(_this.id, secretKey, 256));
       $.ajax({
         url: "/apis/login",
         type: "get",
-        data: {username: _this.username, password: _this.password},
+        data: {
+          username: _this.name,
+          password: encryptor.encrypt(_this.id, secretKey, 256),
+          //password: _this.password,
+          loginState: "student"
+        },
         async: true,
         success: function (data, stats) {
 

@@ -9,7 +9,7 @@ export default {
   * we will store following information in sessionStorage:
   * "collegeID" :
   * "loginState" : enum{"teacher", "student", "school"}
-  * "uploaded": enum{"true", "false"}
+  * "uploaded": enum{"true", "false"} // 表示教务人员有没有上传考官和考生信息
    */
 
   setCollegeID: function(arg){
