@@ -31,8 +31,9 @@
             <!-- /.col -->
           </div>
 
-        <a href="#">忘记密码</a><br>
-        <a href="#" class="text-center">注册新账号</a>
+<!--        <a href="#">忘记密码</a><br>-->
+        <router-link to="/contact"><span>忘记密码</span></router-link><br>
+        <router-link to="/contact"><span>注册新账号</span></router-link>
 
       </div>
       <!-- /.login-box-body -->
@@ -104,7 +105,9 @@ export default {
               "loginState": "school",
             }
           );
-
+          document.getElementById("identification").innerHTML="欢迎您，" + _this.$globalVar.collegeID;
+          document.getElementById("status").innerHTML=_this.$globalVar.getStorage("loginStatus");
+          document.getElementById("statusLight").setAttribute("class", "fa fa-circle text-success");
           _this.$router.replace('/search');
         },
         error: function () {

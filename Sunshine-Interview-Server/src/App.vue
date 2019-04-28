@@ -25,10 +25,10 @@
               <!-- Menu toggle button -->
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <i class="fa fa-envelope-o"></i>
-                <span class="label label-success">4</span>
+                <span class="label label-success">1</span>
               </a>
               <ul class="dropdown-menu">
-                <li class="header">You have 4 messages</li>
+                <li class="header">遇到问题需要帮助？</li>
                 <li>
                   <!-- inner menu: contains the messages -->
                   <ul class="menu">
@@ -36,22 +36,22 @@
                       <a href="#">
                         <div class="pull-left">
                           <!-- User Image -->
-                          <img :src= userimg class="img-circle" alt="User Image">
+                          <img :src= userimg class="img-circle" alt="User Image" style="background-size: auto">
                         </div>
                         <!-- Message title and timestamp -->
                         <h4>
-                          Support Team
+                          联系我们
                           <small><i class="fa fa-clock-o"></i> 5 mins</small>
                         </h4>
                         <!-- The message -->
-                        <p>Why not buy a new awesome theme?</p>
+                        <p>点击获取服务支持</p>
                       </a>
                     </li>
                     <!-- end message -->
                   </ul>
                   <!-- /.menu -->
                 </li>
-                <li class="footer"><a href="#">See All Messages</a></li>
+<!--                <li class="footer"><a href="#">See All Messages</a></li>-->
               </ul>
             </li>
             <!-- /.messages-menu -->
@@ -62,12 +62,19 @@
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <!-- The user image in the navbar-->
                 <!-- hidden-xs hides the username on small devices so only the image appears. -->
-                <span class="hidden-xs">您好，请登录</span>
+                <span class="hidden-xs" id="identification">您好，请登录</span>
               </a>
             </li>
             <!-- Control Sidebar Toggle Button -->
-            <li>
-              <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+            <li class="dropdown">
+              <!-- Menu toggle button -->
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-gears"></i>
+              </a>
+              <ul class="dropdown-menu">
+                <li><router-link to="/contact">联系我们</router-link></li>
+                <li @click="logout"><a href="#">退出登录</a></li>
+              </ul>
             </li>
           </ul>
         </div>
@@ -85,7 +92,11 @@
           <div class="pull-left info">
             <p>欢迎使用阳光考试系统</p>
             <!-- Status -->
-            <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+              <i class="fa fa-circle text-gray" style="text-align: left" id="statusLight"></i>
+              <span id="status" v-if="hasLoggedin()!==true" style="text-align: right"><small>请登陆</small></span>
+              <span v-else-if="isTeacher()" style="text-align: right"><small>教务老师</small></span>
+              <span v-else-if="isStudent()" style="text-align: right"><small>考生</small></span>
+              <span v-else-if="isSchool()" style="text-align: right"><small>考校查验</small></span>
           </div>
         </div>
 
@@ -101,6 +112,7 @@
           </li>
           <li><router-link to="/signinStudent"><i class="fa fa-link"></i> <span>查看证书</span></router-link></li>
           <li><router-link to="/signinSchool"><i class="fa fa-link"></i> <span>查看视频</span></router-link></li>
+          <li><router-link to="/contact"><i class="fa fa-link"></i> <span>联系我们</span></router-link></li>
         </ul>
         <!-- /.sidebar-menu -->
       </section>
@@ -232,8 +244,26 @@ export default {
     }
   },
   methods: {
-    signin () {
-      ;
+    logout () {
+      let _this = this;
+      window.location.reload();
+      _this.$router.replace('/');
+    },
+    hasLoggedin () {
+      let _this = this;
+      return _this.$globalVar.checkLogin();
+    },
+    isSchool () {
+      let _this = this;
+      return _this.$globalVar.checkIfSchool();
+    },
+    isTeacher () {
+      let _this = this;
+      return _this.$globalVar.checkIfTeacher();
+    },
+    isStudent () {
+      let _this = this;
+      return _this.$globalVar.checkIfStudent();
     }
   }
 }

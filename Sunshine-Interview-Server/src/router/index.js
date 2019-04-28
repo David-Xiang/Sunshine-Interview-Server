@@ -9,6 +9,7 @@ import signinStudent from '@/components/signinStudent'
 import signinTeacher from '@/components/signinTeacher'
 import signinSchool from '@/components/signinSchool'
 import downloadInfo from '@/components/downloadInfo'
+import contactUs from '../components/contactUs'
 
 Vue.use(Router)
 
@@ -65,6 +66,10 @@ export default new Router({
     {
       path: '/download',
       component: downloadInfo,
+    },
+    {
+      path: '/contact',
+      component: contactUs
     }
   ]
 })
