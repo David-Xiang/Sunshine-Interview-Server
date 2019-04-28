@@ -26,7 +26,7 @@
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
-              <button v-on:click="signin" type="button" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
+              <button type="button" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
             </div>
             <!-- /.col -->
           </div>
