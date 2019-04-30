@@ -84,6 +84,11 @@
               return;
             }
             _this.$globalVar.setvList(data.videos.urls);
+            _this.$globalVar.setExam(data.interviewName);
+            _this.$globalVar.setSite(data.interviewSiteName);
+            _this.$globalVar.setStartTime(data.startTime);
+            _this.$globalVar.setEndTime(data.endTime);
+            _this.$globalVar.setStudentName(data.studentName);
             _this.$router.replace('/watch');
           },
           error: function () {

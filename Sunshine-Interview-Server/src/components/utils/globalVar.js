@@ -3,8 +3,9 @@ export default {
   vList: [],
   studentName: '',
   exam: '',
+  site: '',
   startTime: '',
-  EndTime: '',
+  endTime: '',
   blockID: '',
   /*
   * we will store following information in sessionStorage:
@@ -15,6 +16,10 @@ export default {
 
   setCollegeID: function(arg){
     this.collegeID = arg;
+  },
+
+  setSite: function(arg){
+    this.site = arg;
   },
 
   setvList: function(arg){
@@ -29,8 +34,12 @@ export default {
     this.exam = arg;
   },
 
-  setTime: function(arg) {
-    this.time = arg;
+  setStartTime: function(arg) {
+    this.startTime = arg;
+  },
+
+  setEndTime: function(arg) {
+    this.endTime = arg;
   },
 
   setBlockID: function(arg) {

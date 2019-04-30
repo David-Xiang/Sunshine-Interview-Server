@@ -26,7 +26,7 @@
         <h3 id="name"> {{studentName}} </h3>
         <h3 id="exam"> {{exam}} </h3>
         <h3 id="time"> {{startTime}} </h3>
-        <h3 id="durance"> {{EndTime}} </h3>
+        <h3 id="durance"> {{durance}} </h3>
         <h3 id="blockID"> {{blockID}} </h3>
       </div>
       <div class="row no-print">
@@ -44,6 +44,7 @@
 </template>
 
 <script>
+/* eslint-disable */
   export default {
     name: 'viewCertificate',
     data () {
@@ -51,7 +52,8 @@
         studentName: '马冬梅',
         exam: '博雅计划面试',
         startTime: '2019/06/25',
-        EndTime: '8:30 - 9:00',
+        endTime: '',
+        durance: '8:30 - 9:00',
         blockID: '00101101',
         userimg: require('../static/certificate.jpg')
       }
@@ -60,8 +62,12 @@
       this.studentName = this.$globalVar.getStorage('studentName')
       this.exam = this.$globalVar.getStorage('exam')
       this.startTime = this.$globalVar.getStorage('startTime')
-      this.EndTime = this.$globalVar.getStorage('startTime')
-      this.blockID = this.$globalVar.getStorage('blockID')
+      this.EndTime = this.$globalVar.getStorage('endTime')
+      let d = this.startTime.substr(11) + ' - ' + this.endTime.substr(11)
+      this.durance = d
+      let rawBlockID = this.$globalVar.getStorage('blockID')
+      // let rawIDLength = rawBlockID.length
+      this.blockID = rawBlockID.substr(6)
       document.getElementById('name').style.position = 'absolute'
       document.getElementById('name').style.top = '260px'
       document.getElementById('name').style.left = '330px'

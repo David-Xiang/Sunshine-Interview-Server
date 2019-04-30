@@ -41,7 +41,7 @@
 </template>
 
 <script>
-  /* eslint-disable */
+/* eslint-disable */
   import { JSEncrypt } from 'jsencrypt'
   export default {
     name: 'signinStudent',
@@ -99,7 +99,8 @@
             _this.$globalVar.setCollegeID(data.CollegeID);
             _this.$globalVar.setStudentName(data.studentName);
             _this.$globalVar.setExam(data.interviewName);
-            _this.$globalVar.setTime(data.startTime);
+            _this.$globalVar.setStartTime(data.startTime);
+            _this.$globalVar.setEndTime(data.endTime);
             _this.$globalVar.setBlockID(data.blockString);
             _this.$globalVar.setStorage(
               {
@@ -108,6 +109,7 @@
                 "studentName": data.studentName,
                 "exam": data.interviewName,
                 "startTime": data.startTime,
+                "endTime": data.endTime,
                 'blockID': data.blockString
               }
             );

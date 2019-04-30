@@ -33,7 +33,8 @@
           <div class="info-box-content">
             <h4>    考试：博雅计划面试</h4>
             <h4>    考场：文史楼101</h4>
-            <h4>    时间：2019/06/20 8:30 - 9:00</h4>
+            <h4>    开始时间：2019/06/20 8:30</h4>
+            <h4>    结束时间：2019/06/20 9:00</h4>
             <h4>    参与者：胡三汉</h4>
             <!--h4>    当前播放视频片段：第 {{current + 1}} 段</h4-->
           </div>
@@ -67,11 +68,21 @@ export default {
   data () {
     return {
       vList: [],
-      currentVideoIndex: 0
+      currentVideoIndex: 0,
+      exam: '',
+      site: '',
+      startTime: '',
+      endTime: '',
+      studentName: ''
     }
   },
   mounted: function () {
     this.vList = this.$globalVar.vList
+    this.studentName = this.$globalVar.getStorage('studentName')
+    this.exam = this.$globalVar.getStorage('exam')
+    this.site = this.$globalVar.getStorage('site')
+    this.startTime = this.$globalVar.getStorage('startTime')
+    this.endTime = this.$globalVar.getStorage('endTime')
     this.initVideo();
   },
   computed : {
