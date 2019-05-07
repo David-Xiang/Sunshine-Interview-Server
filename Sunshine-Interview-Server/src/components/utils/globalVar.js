@@ -62,6 +62,10 @@ export default {
       sessionStorage.setItem(key, content[key]);
   },
 
+  clearStorage: function(){
+    sessionStorage.clear();
+  },
+
   getStorage: function (key) {
     /*
     * key(str)

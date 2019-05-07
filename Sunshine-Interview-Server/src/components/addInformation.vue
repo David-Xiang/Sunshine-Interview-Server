@@ -87,12 +87,12 @@ export default {
       if (datelist[1].length === 1)
         datelist[1] = '0' + datelist[1];
       datelist[2] = "20" + datelist[2];
-      let newDate = datelist[2] + datelist[0] + datelist[1];
+      let newDate = datelist[2] + "-" + datelist[0] + "-" + datelist[1];
       let timelist = time.split(":");
       if (timelist[0].length === 1)
         timelist[0] = "0" + timelist[0];
-      let newTime = timelist[0] + timelist[1];
-      return parseInt(newDate + newTime);
+      let newTime = timelist[0] + ":" + timelist[1];
+      return newDate + " " +  newTime;
     },
 
     cmp: function(a, b)
@@ -188,7 +188,9 @@ export default {
           _this.$globalVar.setStorage({
             "uploaded": "true"
           });
-          _this.$router.replace('/download');
+          setTimeout(function(){
+            _this.$router.replace('/download');
+          }, 20000);
         },
         error: function (error) {
           console.log(error);

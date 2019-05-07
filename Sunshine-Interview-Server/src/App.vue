@@ -246,6 +246,7 @@ export default {
   methods: {
     logout () {
       let _this = this;
+      _this.$globalVar.clearStorage();
       window.location.reload();
       _this.$router.replace('/');
     },
