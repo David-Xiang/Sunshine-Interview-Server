@@ -99,8 +99,8 @@
             _this.$globalVar.setCollegeID(data.CollegeID);
             _this.$globalVar.setStudentName(data.studentName);
             _this.$globalVar.setExam(data.interviewName);
-            _this.$globalVar.setStartTime(data.startTime);
-            _this.$globalVar.setEndTime(data.endTime);
+            _this.$globalVar.setStartTime(data.startTimeRecord);
+            _this.$globalVar.setEndTime(data.endTimeRecord);
             _this.$globalVar.setBlockID(data.blockString);
             _this.$globalVar.setStorage(
               {
@@ -108,8 +108,8 @@
                 "loginState": "student",
                 "studentName": data.studentName,
                 "exam": data.interviewName,
-                "startTime": data.startTime,
-                "endTime": data.endTime,
+                "startTime": data.startTimeRecord,
+                "endTime": data.endTimeRecord,
                 'blockID': data.blockString
               }
             );

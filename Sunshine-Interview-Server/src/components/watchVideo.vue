@@ -55,6 +55,18 @@
             </button>
           </div>
         </div>
+          <div class="teacher-list">
+            <h4>本场面试官：</h4>
+            <div  v-for="(teacher, index) in teacherList" :key="teacher.id">
+              <h4> {{teacher.TeacherName}} </h4>
+            </div>
+          </div>
+          <div class="student-list">
+            <h4>本场考生：</h4>
+            <div  v-for="(student, index) in studentList" :key="student.id">
+              {{student.StudentName}}
+            </div>
+          </div>
       </div>
       </div>
     </section>
@@ -73,11 +85,15 @@ export default {
       site: '',
       startTime: '',
       endTime: '',
-      studentName: ''
+      studentName: '',
+      studentList: [],
+      teacherList: []
     }
   },
   mounted: function () {
     this.vList = this.$globalVar.vList
+    this.studentList = this.$globalVar.studentList
+    this.teacherList = this.$globalVar.teacherList
     this.studentName = this.$globalVar.getStorage('studentName')
     this.exam = this.$globalVar.getStorage('exam')
     this.site = this.$globalVar.getStorage('site')

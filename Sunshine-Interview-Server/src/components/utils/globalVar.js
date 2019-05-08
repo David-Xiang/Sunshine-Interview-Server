@@ -7,6 +7,8 @@ export default {
   startTime: '',
   endTime: '',
   blockID: '',
+  studentList: [],
+  teacherList: [],
   /*
   * we will store following information in sessionStorage:
   * "collegeID" :
@@ -24,6 +26,12 @@ export default {
 
   setvList: function(arg){
     this.vList = arg;
+  },
+  setStudentList: function(arg){
+    this.studentList = arg;
+  },
+  setTeacherList: function(arg){
+    this.teacherList = arg;
   },
 
   setStudentName: function(arg) {

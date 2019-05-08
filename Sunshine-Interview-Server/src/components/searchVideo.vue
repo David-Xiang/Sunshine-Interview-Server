@@ -84,11 +84,23 @@
               return;
             }
             _this.$globalVar.setvList(data.videos.urls);
+            _this.$globalVar.setStudentList(data.studentinfo);
+            _this.$globalVar.setTeacherList(data.teacherinfo);
             _this.$globalVar.setExam(data.interviewName);
             _this.$globalVar.setSite(data.interviewSiteName);
-            _this.$globalVar.setStartTime(data.startTime);
-            _this.$globalVar.setEndTime(data.endTime);
+            _this.$globalVar.setStartTime(data.startTimeRecord);
+            _this.$globalVar.setEndTime(data.endTimeRecord);
             _this.$globalVar.setStudentName(data.studentName);
+            _this.$globalVar.setStorage(
+              {
+                "studentName": data.studentName,
+                "exam": data.interviewName,
+                "site": data.interviewSiteName,
+                "startTime": data.startTimeRecord,
+                "endTime": data.endTimeRecord,
+                'blockID': data.blockString
+              }
+            );
             _this.$router.replace('/watch');
           },
           error: function () {

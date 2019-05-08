@@ -27,7 +27,7 @@
         <h3 id="exam"> {{exam}} </h3>
         <h3 id="time"> {{startTime}} </h3>
         <h3 id="durance"> {{durance}} </h3>
-        <h3 id="blockID"> {{blockID}} </h3>
+        <h4 id="blockID"> {{blockID}} </h4>
       </div>
       <div class="row no-print">
         <div class="col-xs-12">
@@ -62,27 +62,26 @@
       this.studentName = this.$globalVar.getStorage('studentName')
       this.exam = this.$globalVar.getStorage('exam')
       this.startTime = this.$globalVar.getStorage('startTime')
-      this.EndTime = this.$globalVar.getStorage('endTime')
+      this.endTime = this.$globalVar.getStorage('endTime')
       let d = this.startTime.substr(11) + ' - ' + this.endTime.substr(11)
       this.durance = d
-      let rawBlockID = this.$globalVar.getStorage('blockID')
       // let rawIDLength = rawBlockID.length
-      this.blockID = rawBlockID.substr(6)
+      this.blockID = this.$globalVar.getStorage('blockID')
       document.getElementById('name').style.position = 'absolute'
       document.getElementById('name').style.top = '260px'
       document.getElementById('name').style.left = '330px'
       document.getElementById('exam').style.position = 'absolute'
       document.getElementById('exam').style.top = '395px'
-      document.getElementById('exam').style.left = '280px'
+      document.getElementById('exam').style.left = '270px'
       document.getElementById('time').style.position = 'absolute'
       document.getElementById('time').style.top = '443px'
-      document.getElementById('time').style.left = '280px'
+      document.getElementById('time').style.left = '270px'
       document.getElementById('durance').style.position = 'absolute'
       document.getElementById('durance').style.top = '490px'
-      document.getElementById('durance').style.left = '280px'
+      document.getElementById('durance').style.left = '270px'
       document.getElementById('blockID').style.position = 'absolute'
-      document.getElementById('blockID').style.top = '530px'
-      document.getElementById('blockID').style.left = '280px'
+      document.getElementById('blockID').style.top = '545px'
+      document.getElementById('blockID').style.left = '270px'
     }
   }
 </script>
