@@ -2,7 +2,7 @@
 Copyright		: Sunshine
 Author			: Xu
 Startdate		: 2019-03-19 22:19:12
-Finishdate		: 2019-04-19 00:46:07
+Finishdate		: 2019-04-28 03:46:07
 Description		: May codes no BUGs
 **************************************************/
 
@@ -20,11 +20,13 @@ module.exports = function(host){
 	const mysql = require("mysql2/promise");
 	const fs = require("fs");
 	const os = require("os");
+	const crypto = require('crypto');
 	const showDetails = true;
 	const showJson = true;
 	const hostfromtxt = false;
 	const logUpdate = true;
-
+	const MB = 1024 * 1024;
+	
 	Date.prototype.Format = function(fmt)
 	{
 		let o =
@@ -41,7 +43,12 @@ module.exports = function(host){
 			if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
 		return fmt;
 	}
-
+	
+	this.sleep = function (sleepTime)/* Just a tool */
+	{
+		for(var start = +new Date; +new Date - start <= sleepTime; ) { } 
+	}
+	
 	function getIPAdress()/* Just a tool */
 	{  
 		let interfaces = os.networkInterfaces();
@@ -99,6 +106,39 @@ module.exports = function(host){
 		count++;
 		await connection.execute("UPDATE info SET LogCount = " + count + " where CollegeID = " + collegeId + ";");
 		await connection.end();
+	}
+	
+	this.computeHash = function (fileName)/* A new tool */
+	{
+		// [Xu] Exp: computeHash("1.mp4");
+		if (showDetails) console.log("[Start computeHash('" + fileName + "')]");
+		let stats = fs.statSync(fileName);
+		let startReadTime = new Date();
+		let data = fs.readFileSync(fileName);
+		let endReadTime = new Date();
+		let startHashTime = new Date();
+		//console.log(startHashTime);
+		let hash = crypto.createHash('md5');
+		hash.update(data);
+		let hashString = hash.digest('hex');
+		let endHashTime = new Date();
+		//console.log(endHashTime);
+		//console.log(Math.round(endHashTime - startHashTime) / 1000);
+		//console.log(hashString);
+		let res = {};
+		res.fileName = fileName;
+		res.size_mb = Math.round(stats.size / MB * 100) / 100;
+		res.sizeString = res.size_mb + " Mb";
+		res.timeRead_s = Math.round(endReadTime - startReadTime) / 1000;
+		res.timeReadString = res.timeRead_s + " s";
+		res.timeHash_s = Math.round(endHashTime - startHashTime) / 1000;
+		res.timeHashString = res.timeHash_s + " s";
+		res.hashString = hashString;
+		res.return = hashString;
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(res);
+		if (showDetails) console.log("[End computeHash('" + fileName + "')]\n");
+		return hashString;
 	}
 
 	this.validateFromDB = async function (collegeId, siteId, validateCode)/* fun01 */
@@ -299,7 +339,7 @@ module.exports = function(host){
 		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
 		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows, fields] = await connection.execute("SELECT Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
+		let [rows, fields] = await connection.execute("SELECT InterviewID as 'interviewID', Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = "chooseOrderToDB('" + siteId + "','" + order + "')";
 		if (!rows[0]) res.legal = "false"; // if illegal
@@ -308,6 +348,7 @@ module.exports = function(host){
 			res.legal = "true";
 			res.oldChosen = rows[0].chosen;
 			res.newChosen = "true";
+			res.interviewID = rows[0].interviewID;
 			res.oldChosenTime = rows[0].chosenTime;
 			res.newChosenTime = nowTime_js;
 		}
@@ -953,7 +994,7 @@ module.exports = function(host){
 					rows2[period].teacher = rows3;
 					for (let oneteacher in rows3)
 					{
-						let ask = await this.checkTeacherSigninPreviousInterviewFromDB(siteId, rows2[period].order, rows3[oneteacher].id);
+						let ask = await this.checkTeacherSigninPreviousInterviewFromDB(collegeId, siteId, rows2[period].order, rows3[oneteacher].id);
 						let ask_j = JSON.parse(ask);
 						//console.log(ask_j);
 						rows3[oneteacher].signin_before = ask_j.result;
@@ -1204,6 +1245,8 @@ module.exports = function(host){
 		if (showDetails) console.log("[Start setImgURLToDB('" + id + "', '" + url + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
+		let nowTime = new Date();
+		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
 		res.functionName = "setImgURLToDB('" + id + "', '" + url + "')]";
 		let [rows, fields] = await connection.execute("SELECT s.ImgURL FROM student as s where s.StudentID = " + id + ";");
 		if (!rows[0])
@@ -1297,17 +1340,19 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 
-	this.cleanData = async function (collegeId)/* fun26 */
+	this.cleanDataToDB = async function (collegeId)/* fun26 */
 	{
-		// [Xu] Exp: cleanAll();
+		// [Xu] Exp: cleanDataToDB();
 		myconnect.database = "sunshine_" + collegeId;
-		await this.logUpdateToDB(collegeId, "cleanData");
-		if (showDetails) console.log("[Start cleanData()");
+		await this.logUpdateToDB(collegeId, "cleanDataToDB");
+		if (showDetails) console.log("[Start cleanDataToDB()");
 		let connection = await mysql.createConnection(myconnect);
 		await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0;");
-		await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null, Chosen = 0, ChosenTime = null;");
+		await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null, Chosen = 0, ChosenTime = null, BlockString = null, VideoPathString = null;");
 		await connection.execute("update teacher_takes set signin = 0;");
 		await connection.execute("update student_takes set signin = 0;");
+		await connection.execute("update teacher set ImgURL = null, UpdateTime = null;");
+		await connection.execute("update student set ImgURL = null, UpdateTime = null;");
 		let res = {};
 		res.functionName = "cleanData()";
 		res.legal = "true";
@@ -1315,11 +1360,11 @@ module.exports = function(host){
 		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
 		await connection.end();
-		if (showDetails) console.log("[End cleanData()");
+		if (showDetails) console.log("[End cleanDataToDB()");
 		return content;
 		/********************** Example **********************
 		{
-			"functionName": "cleanData()",
+			"functionName": "cleanDataToDB()",
 			"legal": "true",
 			"result": "true"
 		}
@@ -1341,129 +1386,166 @@ module.exports = function(host){
 		else // if legal
 		{
 			res.legal = "true";
+			myconnect.database = "sunshine";
 			connection = await mysql.createConnection(myconnect);
-			await connection.execute("create schema sunshine_" + collegeId + ";");
-			await connection.end();
-			myconnect.database = "sunshine_" + collegeId;
-			connection = await mysql.createConnection(myconnect);
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`interview` (" +
-				"`InterviewID` int(10) unsigned NOT NULL AUTO_INCREMENT," +
-				"`InterviewSiteID` int(10) unsigned DEFAULT NULL," +
-				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`StartTime` datetime NOT NULL," +
-				"`EndTime` datetime NOT NULL," +
-				"`StartTimeRecord` datetime DEFAULT NULL," +
-				"`EndTimeRecord` datetime DEFAULT NULL," +
-				"`Chosen` int(11) DEFAULT 0," +
-				"`ChosenTime` datetime DEFAULT NULL," +
-				"PRIMARY KEY (`InterviewID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`interviewsite` (" +
-				"`InterviewSiteID` int(10) unsigned NOT NULL AUTO_INCREMENT," +
-				"`CollegeID` int(10) unsigned DEFAULT NULL," +
-				"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`InterviewSite` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
-				"`Password` varchar(45) DEFAULT NULL," +
-				//"`RegisterID` int(10) unsigned DEFAULT NULL," +
-				//"`RegisterName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`TeacherSideChosen` int(11) DEFAULT 0," +
-				"`StudentSideChosen` int(11) DEFAULT 0," +
-				"PRIMARY KEY (`InterviewSiteID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`student` (" +
-				"`StudentID` int(10) unsigned NOT NULL," +
-				"`CollegeID` int(10) unsigned," +
-				"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
-				"`PhoneNumber` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`Email` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`ImgURL` varchar(45) COLLATE utf8_unicode_ci DEFAULT 'http://www.ilovestudy.com/img/11990001.jpg'," +
-				"`UpdateTime` datetime DEFAULT NULL," +
-				"PRIMARY KEY (`StudentID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher` (" +
-				"`TeacherID` int(10) unsigned NOT NULL," +
-				 "`CollegeID` int(10) unsigned," +
-				"`TeacherName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
-				"`DeptName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`PhoneNumber` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`Email` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`ImgURL` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`UpdateTime` datetime DEFAULT NULL," +
-				"PRIMARY KEY (`TeacherID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`student_takes` (" +
-				"`InterviewID` int(10) unsigned NOT NULL," +
-				"`StudentID` int(10) unsigned NOT NULL," +
-				"`InterviewSiteID` int(10) unsigned NOT NULL," +
-				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`Signin` int(11) NOT NULL," +
-				"`VideoPath` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`VideoDuration` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"PRIMARY KEY (`InterviewID`,`StudentID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher_takes` (" +
-				"`InterviewID` int(10) unsigned NOT NULL," +
-				"`TeacherID` int(10) unsigned NOT NULL," +
-				"`InterviewSiteID` int(10) unsigned NOT NULL," +
-				"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`Signin` int(11) NOT NULL," +
-				"PRIMARY KEY (`InterviewID`,`TeacherID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`xls_student_takes` (" +
-				"`InterviewSiteName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
-				"`StartTime` datetime NOT NULL," +
-				"`EndTime` datetime NOT NULL," +
-				"`StudentID` int(11) NOT NULL," +
-				"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`Email` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
-				"`PhoneNumber` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
-				"`CollegeID` int(11) DEFAULT NULL," +
-				"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
-				"`UpdateTime` datetime DEFAULT NULL," +
-				"`CollegeName` varchar(45) DEFAULT NULL," +
-				"`Password` varchar(45) DEFAULT NULL," +
-				"`StudentSideChosen` int(11) DEFAULT 0," +
-				"`TeacherSideChosen` int(11) DEFAULT 0," +
-				"PRIMARY KEY (`InterviewSiteName`,`StudentID`,`StartTime`,`EndTime`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`xls_teacher_takes` (" +
-				"`InterviewSiteName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
-				"`StartTime` datetime NOT NULL," +
-				"`EndTime` datetime NOT NULL," +
-				"`TeacherID` int(11) NOT NULL," +
-				"`TeacherName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`Email` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
-				"`PhoneNumber` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
-				"`DeptName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`CollegeID` int(11) DEFAULT NULL," +
-				"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
-				"`UpdateTime` datetime DEFAULT NULL," +
-				"PRIMARY KEY (`InterviewSiteName`,`TeacherID`,`StartTime`,`EndTime`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`info` (" +
-				"`CollegeID` int(11) NOT NULL," +
-				"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-				"`InterviewName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT '博雅'," +
-				"`CreateTime` datetime DEFAULT NULL," +
-				"`LogCount` int(11) DEFAULT 0," +
-				"PRIMARY KEY (`CollegeID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
-			await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`logdata` (" +
-				"`LogID` int(11) NOT NULL AUTO_INCREMENT," +
-				"`LogTime` datetime DEFAULT NULL," +
-				"`FunctionName` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
-				"`IP` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
-				"PRIMARY KEY (`LogID`)" +
-				") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"); 
-			let nowTime = new Date();
-			let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
-			await connection.execute("INSERT INTO sunshine_" + collegeId + ".`info`(CollegeID, CollegeName, CreateTime, LogCount) " +
-				"VALUES (" + collegeId + ", (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + "), " + nowTime_db + ", 0);");
-			//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".student AUTO_INCREMENT = " + ((+collegeId) * 1000000) + ";");
-			//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".teacher AUTO_INCREMENT = " + ((+collegeId) * 1000000 + 990000) + ";");
-			await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interviewSite AUTO_INCREMENT = " + ((+collegeId) * 100) + ";");
-			await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interview AUTO_INCREMENT = " + ((+collegeId) * 10000) + ";");
+			let check = await this.checkSchemaFromDB(collegeId);
+			check = JSON.parse(check);
+			//console.log(check);
+			if (check.result == "true")
+			{
+				res.oldExist = "true";
+				await this.dropSchemaToDB(collegeId);
+			}
+			else 
+			if (true) res.oldExist = "false";
+			{
+				//console.log("ssssssssssssssssssssssssssssssssss");
+				await connection.execute("create schema sunshine_" + collegeId + ";");
+				await connection.end();
+				myconnect.database = "sunshine_" + collegeId;
+				connection = await mysql.createConnection(myconnect);
+				
+				//interview表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`interview` (" +
+					"`InterviewID` int(10) unsigned NOT NULL AUTO_INCREMENT," +
+					"`InterviewSiteID` int(10) unsigned DEFAULT NULL," +
+					"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`StartTime` datetime NOT NULL," +
+					"`EndTime` datetime NOT NULL," +
+					"`StartTimeRecord` datetime DEFAULT NULL," +
+					"`EndTimeRecord` datetime DEFAULT NULL," +
+					"`Chosen` int(11) DEFAULT 0," +
+					"`ChosenTime` datetime DEFAULT NULL," +
+					"`BlockString` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`VideoPathString` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"PRIMARY KEY (`InterviewID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+					
+				//interviewsite表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`interviewsite` (" +
+					"`InterviewSiteID` int(10) unsigned NOT NULL AUTO_INCREMENT," +
+					"`CollegeID` int(10) unsigned DEFAULT NULL," +
+					"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`InterviewSite` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+					"`Password` varchar(45) DEFAULT NULL," +
+					//"`RegisterID` int(10) unsigned DEFAULT NULL," +
+					//"`RegisterName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`TeacherSideChosen` int(11) DEFAULT 0," +
+					"`StudentSideChosen` int(11) DEFAULT 0," +
+					"PRIMARY KEY (`InterviewSiteID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+					
+				//student表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`student` (" +
+					"`StudentID` int(10) unsigned NOT NULL," +
+					"`CollegeID` int(10) unsigned," +
+					"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+					"`PhoneNumber` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Email` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`ImgURL` varchar(45) COLLATE utf8_unicode_ci DEFAULT 'http://www.ilovestudy.com/img/11990001.jpg'," +
+					"`UpdateTime` datetime DEFAULT NULL," +
+					"PRIMARY KEY (`StudentID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+				
+				//teacher表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher` (" +
+					"`TeacherID` int(10) unsigned NOT NULL," +
+					 "`CollegeID` int(10) unsigned," +
+					"`TeacherName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+					"`DeptName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`PhoneNumber` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Email` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`ImgURL` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`UpdateTime` datetime DEFAULT NULL," +
+					"PRIMARY KEY (`TeacherID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+				
+				//student_takes表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`student_takes` (" +
+					"`InterviewID` int(10) unsigned NOT NULL," +
+					"`StudentID` int(10) unsigned NOT NULL," +
+					"`InterviewSiteID` int(10) unsigned NOT NULL," +
+					"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Signin` int(11) NOT NULL," +
+					"`VideoPath` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`VideoDuration` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"PRIMARY KEY (`InterviewID`,`StudentID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+				
+				//teacher_takes表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`teacher_takes` (" +
+					"`InterviewID` int(10) unsigned NOT NULL," +
+					"`TeacherID` int(10) unsigned NOT NULL," +
+					"`InterviewSiteID` int(10) unsigned NOT NULL," +
+					"`OrderNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Signin` int(11) NOT NULL," +
+					"PRIMARY KEY (`InterviewID`,`TeacherID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
+				
+				//xls_student_takes表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`xls_student_takes` (" +
+					"`InterviewSiteName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+					"`StartTime` datetime NOT NULL," +
+					"`EndTime` datetime NOT NULL," +
+					"`StudentID` int(11) NOT NULL," +
+					"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Email` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
+					"`PhoneNumber` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
+					"`CollegeID` int(11) DEFAULT NULL," +
+					"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+					"`UpdateTime` datetime DEFAULT NULL," +
+					"`CollegeName` varchar(45) DEFAULT NULL," +
+					"`Password` varchar(45) DEFAULT NULL," +
+					"`StudentSideChosen` int(11) DEFAULT 0," +
+					"`TeacherSideChosen` int(11) DEFAULT 0," +
+					"PRIMARY KEY (`InterviewSiteName`,`StudentID`,`StartTime`,`EndTime`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+					
+				//xls_teacher_takes表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`xls_teacher_takes` (" +
+					"`InterviewSiteName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL," +
+					"`StartTime` datetime NOT NULL," +
+					"`EndTime` datetime NOT NULL," +
+					"`TeacherID` int(11) NOT NULL," +
+					"`TeacherName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Email` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+					"`PhoneNumber` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+					"`DeptName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`CollegeID` int(11) DEFAULT NULL," +
+					"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+					"`UpdateTime` datetime DEFAULT NULL," +
+					"PRIMARY KEY (`InterviewSiteName`,`TeacherID`,`StartTime`,`EndTime`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+					
+				//info表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`info` (" +
+					"`CollegeID` int(11) NOT NULL," +
+					"`CollegeName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`InterviewName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT '博雅'," +
+					"`CreateTime` datetime DEFAULT NULL," +
+					"`LogCount` int(11) DEFAULT 0," +
+					"PRIMARY KEY (`CollegeID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+				
+				//log_data表
+				await connection.execute("CREATE TABLE sunshine_" + collegeId + ".`logdata` (" +
+					"`LogID` int(11) NOT NULL AUTO_INCREMENT," +
+					"`LogTime` datetime DEFAULT NULL," +
+					"`FunctionName` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+					"`IP` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
+					"PRIMARY KEY (`LogID`)" +
+					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;"); 
+				let nowTime = new Date();
+				let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
+				await connection.execute("INSERT INTO sunshine_" + collegeId + ".`info`(CollegeID, CollegeName, CreateTime, LogCount) " +
+					"VALUES (" + collegeId + ", (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + "), " + nowTime_db + ", 0);");
+				//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".student AUTO_INCREMENT = " + ((+collegeId) * 1000000) + ";");
+				//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".teacher AUTO_INCREMENT = " + ((+collegeId) * 1000000 + 990000) + ";");
+				await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interviewSite AUTO_INCREMENT = " + ((+collegeId) * 100) + ";");
+				await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interview AUTO_INCREMENT = " + ((+collegeId) * 10000) + ";");
+			}
 		}
+		
 		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
 		await connection.end();
@@ -1481,7 +1563,7 @@ module.exports = function(host){
 	{
 		// [Xu] Exp: dropSchemaToDB("66");
 		myconnect.database = "sunshine_" + collegeId;
-		await this.logUpdateToDB(collegeId, "dropSchemaToDB");
+		//await this.logUpdateToDB(collegeId, "dropSchemaToDB");
 		if (showDetails) console.log("[Start dropSchemaToDB('" + collegeId + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
@@ -1494,6 +1576,13 @@ module.exports = function(host){
 		else // if legal
 		{
 			res.legal = "true";
+			//先清空对应certification中内容20190428
+			let [rows, fields] = await connection.execute("select distinct StudentName, StudentID from student;");
+			for (let i in rows)
+			{
+				await connection.execute("delete from certification.userinfo where StudentName = '" + rows[i].StudentName + "' and StudentID = " + rows[i].StudentID + ";");
+			}
+			//先清空对应certification中内容20190428
 			await connection.execute("drop schema sunshine_" + collegeId + ";");
 		}
 		let content = JSON.stringify(res, null, '\t');
@@ -1587,7 +1676,7 @@ module.exports = function(host){
 		await connection.execute("update interviewsite set `CollegeName` = (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + ");");
 		res.build_interviewSite = "success";//建立interviewSite成功
 		await connection.execute("insert into interview select distinct null,q.InterviewSiteID,null," + 
-			"StartTime,EndTime,null,null,0,null from xls_student_takes as p, interviewsite as q where q.InterviewSite = p.InterviewSiteName order by q.InterviewSiteID, StartTime;");
+			"StartTime,EndTime,null,null,0,null,null,null from xls_student_takes as p, interviewsite as q where q.InterviewSite = p.InterviewSiteName order by q.InterviewSiteID, StartTime;");
 		if (true)
 		{
 			let [rows, fields] = await connection.execute("SELECT * from interview;");
@@ -1625,7 +1714,7 @@ module.exports = function(host){
 			"q.InterviewSiteID order by q.InterviewID, p.StudentID;");
 		res.build_student_takes = "success";//建立student_takes成功
 		await connection.execute("insert into certification.userinfo " + 
-			"select null, a.StudentID, StudentName, c.CollegeID, c.CollegeName, a.InterviewID, e.InterviewSite, d.StartTime, d.EndTime, d.StartTimeRecord, d.EndTimeRecord, null " +
+			"select distinct null, a.StudentID, StudentName, c.CollegeID, c.CollegeName, a.InterviewID, e.InterviewSite, d.StartTime, d.EndTime, d.StartTimeRecord, d.EndTimeRecord, null, null " +
 			"from student_takes as a, student as b, info as c, interview as d, interviewsite as e " +
 			"where a.StudentID = b.StudentID and d.InterviewID = a.InterviewID and d.InterviewSiteID = e.InterviewSiteID;");
 			//建立学生certification初表
@@ -1747,15 +1836,15 @@ module.exports = function(host){
 		********************** Example **********************/
 	}
 	
-	this.webValidateFromDB = async function(userName, userPassword)/* fun34 */
+	this.webValidateInformationFromDB = async function(userName, userPassword)/* fun34 */
 	{
-		// [Xu] Exp: webValidateFromDB("xuenze", "xuenze");
+		// [Xu] Exp: webValidateInformationFromDB("xuenze", "xuenze");
 		myconnect.database = "webaccount";
-		if (showDetails) console.log("[Start webValidateFromDB('" + userName + "', '" + userPassword + "')]");
+		if (showDetails) console.log("[Start webValidateInformationFromDB('" + userName + "', '" + userPassword + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let res = {};
-		res.functionName = "webValidateFromDB('" + userName + "', '" + userPassword + "')";
-		let [rows, fields] = await connection.execute("SELECT UserPassword, UserType, CollegeID from userinfo where UserName = '" + userName + "';");
+		res.functionName = "webValidateInformationFromDB('" + userName + "', '" + userPassword + "')";
+		let [rows, fields] = await connection.execute("SELECT UserPassword, UserType, CollegeID from userinfo where UserName = '" + userName + "' and UserType = 'information';");
 		if (!rows[0])//if illegal
 		{
 			res.legal = "false";
@@ -1774,18 +1863,483 @@ module.exports = function(host){
 			}
 			else res.result = "true";
 		}
-		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		let content = JSON.stringify(res, null, '\t');
 		if (showJson) console.log(content);
 		await connection.end();
-		if (showDetails) console.log("[End webValidateFromDB('" + userName + "', '" + userPassword + "')]\n");
+		if (showDetails) console.log("[End webValidateInformationFromDB('" + userName + "', '" + userPassword + "')]\n");
 		return content;
 		/********************** Example **********************
 		{
-			"functionName": "webValidateFromDB('xuenze', 'xuenze')",
+			 "functionName": "webValidateInformationFromDB('xuenze', 'xuenze')",
 			"legal": "true",
-			"result": "true",
 			"UserType": "addInformation",
-			"CollegeID": "66"
+			"CollegeID": 66,
+			"result": "true"
+		}
+		********************** Example **********************/
+	}
+	
+	this.webGetSiteTableFromDB = async function(collegeId)/* fun35 */
+	{
+		// [Xu] Exp: webGetSiteTableFromDB("66");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "webGetSiteTableFromDB");
+		if (showDetails) console.log("[Start webGetSiteTableFromDB('" + collegeId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "webGetSiteTableFromDB('" + collegeId + "')";
+		let [rows, fields] = await connection.execute("select InterviewSiteID, InterviewSite as InterviewSiteName, `Password` from interviewsite order by InterviewSiteID;");
+		if (!rows[0])
+		{
+			res.legal = "false";
+			res.reason = "Table sunshine_" + collegeId + ".interviewsite is empty.";
+		}
+		else
+		{
+			res.legal = "true";
+			res.info = {};
+			res.info = rows;
+			
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End webGetSiteTableFromDB('" + collegeId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "webGetSiteTableFromDB('66')",
+			"legal": "true",
+			"info": [
+					{
+							"InterviewSiteID": 6600,
+							"InterviewSiteName": "燕园楼816教室",
+							"Password": "4742"
+					},
+					{
+							"InterviewSiteID": 6601,
+							"InterviewSiteName": "第九教学楼305教室",
+							"Password": "7621"
+					}
+			]
+		}
+		********************** Example **********************/
+	}
+	
+	this.checkSchemaFromDB = async function(collegeId)/* fun36 */
+	{
+		// [Xu] Exp: checkSchemaFromDB("66");
+		myconnect.database = "sunshine";
+		//if (showDetails) console.log("[Start checkSchemaFromDB('" + collegeId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "checkSchemaFromDB('" + collegeId + "')";
+		let [rows, fields] = await connection.execute("SELECT count(0) as result FROM information_schema.TABLES WHERE table_schema = 'sunshine_" + collegeId + "';");
+		res.legal = "true";
+		if (rows[0].result != 0)
+		{
+			res.result = "true";
+			res.tableCount = rows[0].result;
+			//await logUpdateToDB(collegeId, "checkSchemaFromDB");
+		}
+		else res.result = "false";
+		let content = JSON.stringify(res, null, '\t');
+		//if (showJson) console.log(content);
+		await connection.end();
+		//if (showDetails) console.log("[End checkSchemaFromDB('" + collegeId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "checkSchemaFromDB('66')",
+			"legal": true,
+			"result": true,
+			"tableCount": 10
+		}
+		********************** Example **********************/
+	}
+
+	this.webValidateVideoFromDB = async function (userName, userPassword)/* fun37 */
+	{
+		// [Xu] Exp: webValidateVideoFromDB("xuenze", "xuenze");
+		myconnect.database = "webaccount";
+		if (showDetails) console.log("[Start webValidateVideoFromDB('" + userName + "', '" + userPassword + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "webValidateVideoFromDB('" + userName + "', '" + userPassword + "')";
+		let [rows, fields] = await connection.execute("SELECT UserPassword, UserType, CollegeID from userinfo where UserName = '" + userName + "' and UserType = 'video';");
+		if (!rows[0])//if illegal
+		{
+			res.legal = "false";
+			res.reason = "This userName doesn't exist.";
+			res.result = "false";
+		}
+		else
+		{
+			res.legal = "true";//if legal
+			res.UserType = rows[0].UserType;
+			res.CollegeID = rows[0].CollegeID;
+			if (userPassword != rows[0].UserPassword)
+			{
+				res.reason = "Wrong Password.";
+				res.result = "false";
+			}
+			else res.result = "true";
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End webValidateVideoFromDB('" + userName + "', '" + userPassword + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "webValidateVideoFromDB('xuenze', 'xuenze')",
+			"legal": "true",
+			"UserType": "Video",
+			"CollegeID": 66,
+			"result": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.webValidateCertificationFromDB = async function (studentID, studentName)/* fun38 */
+	{
+		// [Xu] Exp: webValidateCertificationFromDB("11000013", "白读书");
+		myconnect.database = "certification";
+		if (showDetails) console.log("[Start webValidateCertificationFromDB('" + studentID + "', '" + studentName + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "webValidateCertificationFromDB('" + studentID + "', '" + studentName + "')";
+		if (!studentName || studentName == "")
+		{
+			let [rows, fields] = await connection.execute("SELECT * from userinfo where StudentID = " + studentID + ";");
+			//console.log(rows);
+			if (!rows[0])//if not exists such account
+			{
+				res.legal = "false";
+				res.default = "doesn't use studentName";
+				res.reason = "This studentName doesn't exist.";
+				res.result = "false";
+			}
+			else
+			{
+				res.legal = "true";//if legal
+				for (let i in rows)
+				{
+					let [rows1, fields1] = await connection.execute("SELECT InterviewName from collegenames.namedata where CollegeID = " + rows[i].CollegeID + ";");
+					rows[i].InterviewName = rows1[0].InterviewName;
+				}
+				res.default = "doesn't use studentName";
+				res.studentID = studentID;
+				res.studentName = rows[0].StudentName;
+				res.count = rows.length;
+				res.collegeName = rows[0].CollegeName;
+				res.collegeID = rows[0].CollegeID;
+				res.interviewName = rows[0].InterviewName;
+				res.interviewID = rows[0].InterviewID;
+				res.interviewSiteName = rows[0].InterviewSiteName;
+				res.startTime = rows[0].StartTime;
+				res.endTime = rows[0].EndTime;
+				res.startTimeRecord = rows[0].StartTimeRecord;
+				res.endTimeRecord = rows[0].EndTimeRecord;
+				res.blockString = rows[0].BlockString;
+				res.videoPathString = rows[0].VideoPathString;
+				let [rows2, fields2] = await connection.execute("select p.StudentID, q.StudentName from sunshine_" + res.collegeID + ".student_takes as p," +
+					"sunshine_" + res.collegeID + ".student as q where p.InterviewID = " + res.interviewID + " and p.StudentID = q.StudentID; ;");
+				let [rows3, fields3] = await connection.execute("select p.TeacherID, q.TeacherName from sunshine_" + res.collegeID + ".teacher_takes as p," +
+					"sunshine_" + res.collegeID + ".teacher as q where p.InterviewID = " + res.interviewID + " and p.TeacherID = q.TeacherID; ;");
+				res.studentinfo = rows2;
+				res.teacherinfo = rows3;
+				res.result = "true";
+			}
+		}
+		else
+		{
+			let [rows, fields] = await connection.execute("SELECT * from userinfo where StudentID = " + studentID + " and StudentName = '" + studentName + "';");
+			if (!rows[0])//if not exists such account
+			{
+				res.legal = "false";
+				res.default = "use studentName";
+				res.reason = "This studentID with studentName doesn't exist.";
+				res.result = "false";
+			}
+			else
+			{
+				res.legal = "true";//if legal
+				for (let i in rows)
+				{
+					let [rows1, fields1] = await connection.execute("SELECT InterviewName from collegenames.namedata where CollegeID = " + rows[i].CollegeID + ";");
+					rows[i].InterviewName = rows1[0].InterviewName;
+				}
+				res.default = "use studentName";
+				res.studentID = studentID;
+				res.studentName = rows[0].StudentName;
+				res.count = rows.length;
+				res.collegeName = rows[0].CollegeName;
+				res.collegeID = rows[0].CollegeID;
+				res.interviewName = rows[0].InterviewName;
+				res.interviewID = rows[0].InterviewID;
+				res.interviewSiteName = rows[0].InterviewSiteName;
+				res.startTime = rows[0].StartTime;
+				res.endTime = rows[0].EndTime;
+				res.startTimeRecord = rows[0].StartTimeRecord;
+				res.endTimeRecord = rows[0].EndTimeRecord;
+				res.blockString = rows[0].BlockString;
+				res.videoPathString = rows[0].VideoPathString;
+				let [rows2, fields2] = await connection.execute("select p.StudentID, q.StudentName from sunshine_" + res.collegeID + ".student_takes as p," +
+					"sunshine_" + res.collegeID + ".student as q where p.InterviewID = " + res.interviewID + " and p.StudentID = q.StudentID; ;");
+				let [rows3, fields3] = await connection.execute("select p.TeacherID, q.TeacherName from sunshine_" + res.collegeID + ".teacher_takes as p," +
+					"sunshine_" + res.collegeID + ".teacher as q where p.InterviewID = " + res.interviewID + " and p.TeacherID = q.TeacherID; ;");
+				res.studentinfo = rows2;
+				res.teacherinfo = rows3;
+				res.result = "true";
+			}
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End webValidateCertificationFromDB('" + studentID + "', '" + studentName + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "webValidateCertificationFromDB('11000013', '白读书')",
+			"legal": "true",
+			"default": "use studentName",
+			"studentID": "11000013",
+			"studentName": "白读书",
+			"count": 1,
+			"collegeName": "解放隔壁长度测试可能很长大学",
+			"collegeID": "77",
+			"interviewName": "2077年P大博雅考试",
+			"interviewID": 770007,
+			"interviewSiteName": "第九教学楼305教室",
+			"startTime": "2019-06-11 10:00:00",
+			"endTime": "2019-06-11 10:50:00",
+			"startTimeRecord": "2019-04-28 16:42:05",
+			"endTimeRecord": "2019-04-28 16:42:05",
+			"blockString": "Block: xiangsirzhenshuai",
+			"videoPathString": "VideoPath: xiangsirzhenshuai",
+			"studentinfo": [
+					{
+							"StudentID": 11000001,
+							"StudentName": "赵汐悦"
+					},
+					{
+							"StudentID": 11000005,
+							"StudentName": "李昕睿"
+					},
+					{
+							"StudentID": 11000009,
+							"StudentName": "张晨皓"
+					},
+					{
+							"StudentID": 11000013,
+							"StudentName": "白读书"
+					},
+					{
+							"StudentID": 11000017,
+							"StudentName": "陈一铭"
+					}
+			],
+			"teacherinfo": [
+					{
+							"TeacherID": 11990001,
+							"TeacherName": "赵一凡"
+					},
+					{
+							"TeacherID": 11990005,
+							"TeacherName": "贾紫"
+					},
+					{
+							"TeacherID": 11990009,
+							"TeacherName": "黄罡"
+					}
+			],
+			"result": "true"
+		}
+		********************** Example **********************/
+	}
+
+	this.getBlockStringFromDB = async function (collegeId, interviewId)/* fun39 */
+	{
+		// [Xu] Exp: getBlockStringFromDB("66", "660000");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "getBlockStringFromDB");
+		if (showDetails) console.log("[Start getBlockStringFromDB('" + collegeId + "', '" + interviewId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "getBlockStringFromDB('" + collegeId + "', '" + interviewId + "')";
+		let [rows, fields] = await connection.execute("SELECT BlockString FROM interview where InterviewID = " + interviewId + ";");
+		if (!rows[0])
+		{
+			res.legal = "false";
+			res.reason = "This interviewID does't exist.";
+			res.result = "???";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			res.result = rows[0].BlockString;
+		}
+		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End getBlockStringFromDB('" + collegeId + "', '" + interviewId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "getBlockStringFromDB('66', '660000')]",
+			"legal": "true",
+			"result": "null"
+		}
+		********************** Example **********************/
+	}
+
+	this.setBlockStringToDB = async function (collegeId, interviewId, blockString)/* fun40 */
+	{
+		// [Xu] Exp: setBlockStringToDB("66", "660000", "Block: xiangsirzhenshuai");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "setBlockStringToDB");
+		if (showDetails) console.log("[Start setBlockStringToDB('" + collegeId + "', '" + interviewId + "', '" + blockString + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "setBlockStringToDB('" + collegeId + "', '" + interviewId + "', '" + blockString + "')";
+		let [rows, fields] = await connection.execute("SELECT BlockString FROM interview where InterviewID = " + interviewId + ";");
+		if (!rows[0])
+		{
+			res.legal = "false";
+			res.reason = "This interviewID does't exist.";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			res.reason = "Set BlockString successfully.";
+			await connection.execute("update interview set BlockString = '" + blockString + "' where InterviewID = " + interviewId + ";");
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End setBlockStringToDB('" + collegeId + "', '" + interviewId + "', '" + blockString + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "setBlockStringToDB('66', '660000', 'Block: xiangsirzhenshuai')]",
+			"legal": "true",
+			"reason": "Set BlockString successfully."
+		}
+		********************** Example **********************/
+	}
+
+	this.getVideoPathStringFromDB = async function (collegeId, interviewId)/* fun41 */
+	{
+		// [Xu] Exp: getVideoPathStringFromDB("66", "660000");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "getVideoPathStringFromDB");
+		if (showDetails) console.log("[Start getVideoPathStringFromDB('" + collegeId + "', '" + interviewId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "getVideoPathStringFromDB('" + collegeId + "', '" + interviewId + "')";
+		let [rows, fields] = await connection.execute("SELECT VideoPathString FROM interview where InterviewID = " + interviewId + ";");
+		if (!rows[0])
+		{
+			res.legal = "false";
+			res.reason = "This interviewID does't exist.";
+			res.result = "???";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			res.result = rows[0].VideoPathString;
+		}
+		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End getVideoPathStringFromDB('" + collegeId + "', '" + interviewId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "getVideoPathStringFromDB('66', '660000')]",
+			"legal": "true",
+			"result": "null"
+		}
+		********************** Example **********************/
+	}
+
+	this.setVideoPathStringToDB = async function (collegeId, interviewId, videoPathString)/* fun42 */
+	{
+		// [Xu] Exp: setVideoPathStringToDB("66", "660000", "VideoPath: xiangsirzhenshuai");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "setVideoPathStringToDB");
+		if (showDetails) console.log("[Start setVideoPathStringToDB('" + collegeId + "', '" + interviewId + "', '" + videoPathString + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "setVideoPathStringToDB('" + collegeId + "', '" + interviewId + "', '" + videoPathString + "')";
+		let [rows, fields] = await connection.execute("SELECT VideoPathString FROM interview where InterviewID = " + interviewId + ";");
+		if (!rows[0])
+		{
+			res.legal = "false";
+			res.reason = "This interviewID does't exist.";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			res.reason = "Set VideoPathString successfully.";
+			await connection.execute("update interview set VideoPathString = '" + videoPathString + "' where InterviewID = " + interviewId + ";");
+		}
+		let content = JSON.stringify(res, null, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End setVideoPathStringToDB('" + collegeId + "', '" + interviewId + "', '" + videoPathString + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "setVideoPathStringToDB('66', '660000', 'VideoPath: xiangsirzhenshuai')]",
+			"legal": "true",
+			"reason": "Set BlockString successfully."
+		}
+		********************** Example **********************/
+	}
+
+	this.updateAfterInterviewToDB = async function (collegeId, interviewId)/* fun43 */
+	{
+		// [Xu] Exp: updateAfterInterviewToDB("66", "660000");
+		myconnect.database = "sunshine_" + collegeId;
+		await this.logUpdateToDB(collegeId, "updateAfterInterviewToDB");
+		if (showDetails) console.log("[Start updateAfterInterviewToDB('" + collegeId + "', '" + interviewId + "')]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = "updateAfterInterviewToDB('" + collegeId + "', '" + interviewId + "')";
+		let [rows, fields] = await connection.execute("SELECT StartTimeRecord, EndTimeRecord, BlockString, VideoPathString FROM interview where InterviewID = " + interviewId + ";");
+		if (!rows[0])
+		{
+			res.legal = "false";
+			res.reason = "This interviewID does't exist.";
+		}
+		else // if legal
+		{
+			res.legal = "true";
+			let [rows1, fields1] = await connection.execute("SELECT StartTimeRecord, EndTimeRecord, BlockString, VideoPathString FROM certification.userinfo where InterviewID = " + interviewId + ";");
+			res.updateOldInfo = rows1[0];
+			res.updateNewInfo = rows[0];
+			if (rows[0].StartTimeRecord == null) StartTimeRecord_db = "null";
+			else StartTimeRecord_db = "'" + rows[0].StartTimeRecord + "'";
+			if (rows[0].EndTimeRecord == null) EndTimeRecord_db = "null";
+			else EndTimeRecord_db = "'" + rows[0].EndTimeRecord + "'";
+			await connection.execute("update certification.userinfo set StartTimeRecord = " + StartTimeRecord_db + 
+				", EndTimeRecord = " + EndTimeRecord_db + 
+				", BlockString = '" + rows[0].BlockString + 
+				"', VideoPathString = '" + rows[0].VideoPathString +
+				"' where InterviewID = " + interviewId + ";");
+		}
+		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End updateAfterInterviewToDB('" + collegeId + "', '" + interviewId + "')]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "getVideoPathStringFromDB('66', '660000')]",
+			"legal": "true",
+			"result": "null"
 		}
 		********************** Example **********************/
 	}
