@@ -31,11 +31,11 @@
           <div class="inner">
           <span class="info-box-icon"><i class="fa fa-bookmark-o"></i></span>
           <div class="info-box-content">
-            <h4>    考试：博雅计划面试</h4>
-            <h4>    考场：文史楼101</h4>
-            <h4>    开始时间：2019/06/20 8:30</h4>
-            <h4>    结束时间：2019/06/20 9:00</h4>
-            <h4>    参与者：胡三汉</h4>
+            <h4>    考试：{{exam}}</h4>
+            <h4>    考场：{{site}}</h4>
+            <h4>    开始时间：{{startTime}}</h4>
+            <h4>    结束时间：{{endTime}}</h4>
+            <h4>    参与者：{{studentName}}</h4>
             <!--h4>    当前播放视频片段：第 {{current + 1}} 段</h4-->
           </div>
           </div>
@@ -55,20 +55,32 @@
             </button>
           </div>
         </div>
+      </div>
+      </div>
+      </section>
+    <section class="content">
+        <div class="row">
+          <div class="col-lg-4 col-xs-6">
+            <h3>本场考生：</h3>
+          <div class="student-list">
+            <div  v-for="(student, index) in studentList" :key="student.id">
+              <h4> {{student.StudentName}}</h4>
+            </div>
+          </div>
+          </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="row">
+          <div class="col-lg-4 col-xs-6">
           <div class="teacher-list">
-            <h4>本场面试官：</h4>
+            <h3>本场面试官：</h3>
             <div  v-for="(teacher, index) in teacherList" :key="teacher.id">
               <h4> {{teacher.TeacherName}} </h4>
             </div>
           </div>
-          <div class="student-list">
-            <h4>本场考生：</h4>
-            <div  v-for="(student, index) in studentList" :key="student.id">
-              {{student.StudentName}}
-            </div>
           </div>
-      </div>
-      </div>
+        </div>
     </section>
   </div>
 </template>
