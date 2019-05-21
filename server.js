@@ -1,12 +1,11 @@
 "use strict";
-let dbhost = "192.168.43.89";
+let dbhost = "10.0.19.110";
 let http = require("http");
 let url = require("url");
 let os = require("os");
 let fs = require("fs");
 let path = require("path");
 let formidable = require("formidable");
-let encryptor = require('encryptjs');
 let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
@@ -33,10 +32,6 @@ let illegalRequest = {
     "legal": "false",
     "result": "false",
     "error": "request"
-}
-
-function Log(tag, msg){
-    console.log()
 }
 
 let server = http.createServer(async function(req, res) {
@@ -102,7 +97,7 @@ let server = http.createServer(async function(req, res) {
             break;
         case "/upload":
             // path like "/videos/6000060/1.mp4"
-            handleUpload(req, res, pathinfo.path, query["id"], query["collegeid"]);
+            handleUpload(req, res, pathinfo.path, query["id"], query["collegeid"], query["interviewid"]);
             break;
         case "/download":
             await handleDownload(res, pathinfo.path);
@@ -133,7 +128,7 @@ let server = http.createServer(async function(req, res) {
             handleSearch(req, res);
             break;
         case "/addhash":
-            handleAddHash(req, res);
+            handleAddHash(req, res, query["interviewid"], query["index"], query["hash"]);
             break;
         case "/verifyhash":
             handleVerifyHash(req, res, query["interviewid"]);
@@ -166,17 +161,26 @@ function responseError(res, text){
 }
 
 function handleAddHash(req, res, interviewId, index, hash){
+    console.log("[handleAddHash] arguments: ");
+    console.log(interviewId);
+    console.log(index);
+    console.log(hash);
     responseJson(res, permission);
-    let videoId = interviewId;
-    for (let i = 0; i < 4-String(index).length; i++)
-        videoId = videoId + '0';
-    videoId += reqJson.index;
+    let videoId = interviewId + "";
+    console.log("[[handleAddHash] interviewId" );
+    console.log(interviewId);
+    // for (let i = 0; i < 4-String(index).length; i++)
+    //     videoId = videoId + "0";
+    // videoId += index;
     let arg = {
         videoID: videoId,
         hash: hash
     }
+    console.log("[handleAddHash] arg: ");
+    console.log(arg);
     chain.addHashToChain(arg, function(data){
-        responseJson(res, data);
+        console.log(data);
+        //responseJson(res, data);
     });
 }
 
@@ -219,7 +223,7 @@ async function handleSearch(req, res){
         let data = await dbconnect.webValidateCertificationFromDB(reqJson.studentID);
         data = JSON.parse(data);
         if (data.legal == "false"){
-            responseJson(illegalRequest);
+            responseJson(res, illegalRequest);
             return;
         }
         //let data = {interviewID: 660001};
@@ -355,8 +359,9 @@ async function handleRegister(req, res){
     });
 }
 
-function handleUpload(req, res, realpath, id, collegeId){
+function handleUpload(req, res, realpath, id, collegeId, interviewId){
     // realpath like "/videos/6000060/1.mp4" or /images/xxx.jpg
+    collegeId = collegeId || interviewId.substring(0, 2);
     if (!realpath)
         return illegalRequest;
     if (req.method.toLowerCase() !== "post")
@@ -373,12 +378,10 @@ function handleUpload(req, res, realpath, id, collegeId){
         let targetDir = path.dirname(realpath);
         if (!fs.existsSync(targetDir)) {  
             console.log("[handleUpload] creating new dir " + targetDir);
-            fs.mkdir(targetDir);  
+            fs.mkdirSync(targetDir);  
         }  
         let fileExt = realpath.substring(realpath.lastIndexOf('.'));  
-        fs.rename(files.img.path, realpath, function(err){
-            if(err){ throw Error("Error in renaming!"); }
-        });
+        fs.renameSync(files.img.path, realpath);
         
         if (('.jpg.jpeg.png.gif').indexOf(fileExt.toLowerCase()) !== -1){
             dbconnect.setImgURLToDB(collegeId, id, '/images/' + files.img.name);
@@ -388,50 +391,62 @@ function handleUpload(req, res, realpath, id, collegeId){
             }
             responseJson(res, ret);
         } else if ('.mp4'.indexOf(fileExt.toLowerCase()) !== -1) {
-            let interviewId = collegeId + id;
+            dbconnect.updateAfterInterviewToDB(collegeId, interviewId);
+            // store hash and video locally
             console.log("[handleUpload] interviewId = " + interviewId);
+            
             let hash = dbconnect.computeHash(realpath);
             let arg = {
                 videoID: interviewId,
                 index: parseInt(path.basename(realpath)),
                 hash: hash
             }
+            console.log("[handleUpload] upload videos success.");
+
+            let dirPath = "./files/videos/" + interviewId;
+            let videosInfoPath =  dirPath + "/info.json";
+            if (!fs.existsSync(videosInfoPath)){
+                console.log("[handleUpload] create " + interviewId + "/info.json");
+                let info = {
+                    count: 0,
+                    urls: []
+                };
+                fs.writeFileSync(videosInfoPath, JSON.stringify(info));
+            }
+            let videoInfo = JSON.parse(fs.readFileSync(videosInfoPath));
+            videoInfo.count = videoInfo.count + 1;
+            videoInfo.urls.push(realpath.substring(7, realpath.length)); //TODO delete ./files
+            console.log("[handleUpload] videoInfo:");
+            console.log(videoInfo);
+            fs.writeFileSync(videosInfoPath, JSON.stringify(videoInfo));
+
+            responseJson(res, permission);
             
-            chain.verifyOneHashFromChain(arg, function(data){
-                let dataInfo = JSON.parse(data);
-                if (data.result != "success"){
-                    let ret = {
-                        "type": "upload_info", 
-                        "status": "failure"
-                    }
-                    responseJson(res, ret);
-                    return;
-                }
-                    
-                let dirPath = "./files/videos/" + interviewId;
-                let videosInfoPath =  dirPath + "/info.json";
-                if (!fs.existsSync(videosInfoPath)){
-                    console.log("[handleUpload] create " + interviewId + "/info.json");
-                    let info = {
-                        counts: 0,
-                        urls: []
-                    };
-                    fs.writeFileSync(videosInfoPath, JSON.stringify(info));
-                }
-                let videoInfo = JSON.parse(fs.readFileSync(videosInfoPath));
-                videoInfo.count = videoInfo.count + 1;
-                videoInfo.urls.push(realpath);
-                console.log("VIDEO INFO");
-                console.log(videoInfo);    
-                let ret = {
-                    "type": "upload_info", 
-                    "status": "success"
-                }
-                responseJson(res, ret);
-            });
+                     
+            // verify hash from chain
+            verifyOneHashFromChain(arg);
+
+            // send video and hash to slaves
+            // TODO
+            //sendVideoToSlave(filepath, hash);
         }
         
     });
+}
+
+function verifyOneHashFromChain(arg){
+    chain.verifyOneHashFromChain(arg, function(data){
+        let dataInfo = JSON.parse(data.data);
+        if (dataInfo.result != "success"){
+            console.log("[verifyOneHashFromChain] WARNING: dataInfo");
+            console.log(dataInfo);
+            return;
+        }   
+    });
+}
+
+function sendVideoToSlave(filepath, hash){
+
 }
 
 function handleSite(res, realpath){
@@ -464,7 +479,7 @@ async function handleDownload(res, realpath){
     }
     res.writeHead(200,{  
         'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
-        'Content-Disposition': 'attachment; filename=' + path.basename(filePath) //告诉浏览器这是一个需要下载的文件  
+        'Content-Disposition': 'attachment; filename=' + path.basename(filePath) //告诉浏览器这是一个需要下载的文件
     });
     fs.createReadStream(filePath).pipe(res);
 }
@@ -592,6 +607,10 @@ async function queryStudent(collegeId, siteId, order){
     let res = JSON.parse(str);
 
     result.info = res.info;
+    for (let i = 0; i < result.info.length; i++){
+        let item = result.info[i];
+        item["img_url"] = "http://" + ip + "/download" + item["img_url"];
+    }
     return result;
 }
 
