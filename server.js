@@ -1,5 +1,5 @@
 "use strict";
-let dbhost = "10.0.19.110";
+let dbhost = "192.168.43.89";
 let http = require("http");
 let url = require("url");
 let os = require("os");
@@ -176,6 +176,8 @@ function handleAddHash(req, res, interviewId, index, hash){
         videoID: videoId,
         hash: hash
     }
+    let collegeId = interviewId.substring(0, 2);
+    dbconnect.setBlockStringToDB(collegeId, interviewId, hash);
     console.log("[handleAddHash] arg: ");
     console.log(arg);
     chain.addHashToChain(arg, function(data){
@@ -394,8 +396,8 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             dbconnect.updateAfterInterviewToDB(collegeId, interviewId);
             // store hash and video locally
             console.log("[handleUpload] interviewId = " + interviewId);
-            
             let hash = dbconnect.computeHash(realpath);
+            //dbconnect.setBlockStringToDB(collegeId, interviewId, hash);
             let arg = {
                 videoID: interviewId,
                 index: parseInt(path.basename(realpath)),

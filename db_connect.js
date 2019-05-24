@@ -985,7 +985,7 @@ module.exports = function(host){
 				res.info.site_id = rows1[0].InterviewSiteID;
 				res.info.site_name = rows1[0].InterviewSite;
 				res.info.periods = {};
-				let [rows2, fields2] = await connection.execute("SELECT OrderNumber as 'order', StartTime as 'start_time', EndTime as 'end_time', StartTimeRecord as 'start_time_record', EndTimeRecord as 'end_time_record' FROM interview where InterviewSiteID = " + siteId + " and StartTimeRecord is null;");
+				let [rows2, fields2] = await connection.execute("SELECT InterviewID as 'interviewID', OrderNumber as 'order', StartTime as 'start_time', EndTime as 'end_time', StartTimeRecord as 'start_time_record', EndTimeRecord as 'end_time_record' FROM interview where InterviewSiteID = " + siteId + " and StartTimeRecord is null;");
 				
 				for (let period in rows2)
 				{
@@ -1021,7 +1021,7 @@ module.exports = function(host){
 			"permission": "true",
 			"info": {
 					"college_id": 11,
-					"college_name": "北京可爱大学",
+					"college_name": "北京，可爱大学",
 					"site_id": 1102,
 					"site_name": "燕园楼816教室",
 					"periods": [
@@ -1137,7 +1137,7 @@ module.exports = function(host){
 		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		if (showDetails) console.log("[Start studentQueryOrderFromDB('" + siteId + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows0, fields0] = await connection.execute("select OrderNumber as 'order', ChosenTime as'chosen_time' from interview where Chosen = 1 and InterviewSiteID = " + siteId + " order by ChosenTime DESC;");
+		let [rows0, fields0] = await connection.execute("select InterviewID as 'interviewID', OrderNumber as 'order', ChosenTime as'chosen_time' from interview where Chosen = 1 and InterviewSiteID = " + siteId + " order by ChosenTime DESC;");
 		let res = {};
 		res.functionName = "studentQueryOrderFromDB('" + siteId + "')";
 		if (!rows0[0]) // if illegal
@@ -1151,6 +1151,7 @@ module.exports = function(host){
 			res.legal = "true";
 			res.type = "site_info";
 			res.permission = "true";
+			res.interviewID = rows0[0].interviewID;//update at 2019/5/21
 			res.nowTime = nowTime_js;
 			res.closestChosenTime = rows0[0].chosen_time;
 			res.maxInterval_minute = maxInterval + "";
@@ -1162,6 +1163,7 @@ module.exports = function(host){
 			{
 				res.info = {};
 				res.info.order = rows0[0].order;
+				res.info.interviewID = rows0[0].interviewID;
 				res.info.chosen_time = rows0[0].chosen_time;
 			}
 			else
@@ -1185,7 +1187,8 @@ module.exports = function(host){
 			"maxInterval_minute": "10",
 			"factInterval_minute": "1.75",
 			"info": {
-					"order": 2,
+					"order": "第2场",
+					"interviewID": 770007
 					"chosen_time": "2019-03-21 02:33:40"
 			}
 		}
@@ -1348,11 +1351,13 @@ module.exports = function(host){
 		if (showDetails) console.log("[Start cleanDataToDB()");
 		let connection = await mysql.createConnection(myconnect);
 		await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0;");
-		await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null, Chosen = 0, ChosenTime = null, BlockString = null, VideoPathString = null;");
+		await connection.execute("update interview set Chosen = 0, ChosenTime = null;");
+		//await connection.execute("update interview set BlockString = null, VideoPathString = null;");
+		//await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null;");
 		await connection.execute("update teacher_takes set signin = 0;");
 		await connection.execute("update student_takes set signin = 0;");
-		await connection.execute("update teacher set ImgURL = null, UpdateTime = null;");
-		await connection.execute("update student set ImgURL = null, UpdateTime = null;");
+		//await connection.execute("update teacher set ImgURL = null, UpdateTime = null;");
+		//await connection.execute("update student set ImgURL = null, UpdateTime = null;");
 		let res = {};
 		res.functionName = "cleanData()";
 		res.legal = "true";
