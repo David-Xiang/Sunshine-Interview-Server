@@ -45,6 +45,7 @@ let server = http.createServer(async function(req, res) {
     }
     pathinfo = parsePathString(url.parse(req.url).pathname);
     
+    console.log(pathinfo);
     let result = {};
     switch(pathinfo.type){
         case "/":
@@ -114,17 +115,21 @@ let server = http.createServer(async function(req, res) {
         case "/site":
             handleSite(res, "./site" + pathinfo.path);
             break;
-        case "/apis/login":
-            handleLogin(req, res);
-            break;
-        case "/apis/register":
-            handleRegister(req, res);
-            break;
-        case "/apis/sitetable":
-            handleSiteTable(req, res, query["collegeid"]);
-            break;
-        case "/apis/search":
-            handleSearch(req, res);
+        case "/apis":
+            switch(pathinfo.path){
+                case "/login":
+                    handleLogin(req, res);
+                    break;
+                case "/register":
+                    handleRegister(req, res);
+                    break;
+                case "/sitetable":
+                    handleSiteTable(req, res, query["collegeid"]);
+                    break;
+                case "/search":
+                    handleSearch(req, res);
+                    break;
+            }
             break;
         case "/addhash":
             handleAddHash(req, res, query["interviewid"], query["index"], query["hash"]);
@@ -249,6 +254,7 @@ async function handleSiteTable(req, res, CollegeID){
 }
 
 function handleLogin(req, res){
+    console.log("[handleLogin]");
     let dataStr = "";
     req.on('data', function (chunk) {
         dataStr += chunk;
