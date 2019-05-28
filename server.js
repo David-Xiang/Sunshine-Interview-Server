@@ -114,17 +114,16 @@ let server = http.createServer(async function(req, res) {
         case "/site":
             handleSite(res, "./site" + pathinfo.path);
             break;
-        case "/login":
+        case "/apis/login":
             handleLogin(req, res);
             break;
-        case "/register":
-            // TOKEN
+        case "/apis/register":
             handleRegister(req, res);
             break;
-        case "/sitetable":
+        case "/apis/sitetable":
             handleSiteTable(req, res, query["collegeid"]);
             break;
-        case "/search":
+        case "/apis/search":
             handleSearch(req, res);
             break;
         case "/addhash":
