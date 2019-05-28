@@ -1,5 +1,5 @@
 "use strict";
-let dbhost = "192.168.43.89";
+let dbhost = "59.110.174.238";
 let http = require("http");
 let url = require("url");
 let os = require("os");
@@ -10,7 +10,7 @@ let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
-let ip;
+let ip = "129.28.159.207";
 
 
 /** 
@@ -141,7 +141,7 @@ let server = http.createServer(async function(req, res) {
 
 server.listen(80);
 console.log("Server starts on port " + 80);
-ip = showLocalIP();
+//ip = showLocalIP();
 
 function responseJson(res, json){
     responseText(res, JSON.stringify(json));
