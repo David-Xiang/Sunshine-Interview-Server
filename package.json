@@ -1,0 +1,29 @@
+{
+  "name": "sunshine-interview-server",
+  "version": "1.0.0",
+  "description": "A naïve server for Sunshine Interview Project",
+  "main": "server.js",
+  "dependencies": {
+    "formidable": "^1.2.1",
+    "mysql2": "^1.6.5",
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/David-Xiang/Sunshine-Interview-Server.git"
+  },
+  "keywords": [
+    "Server",
+    "Sunshine-Interview"
+  ],
+  "author": "David Xiang & Mr. Enze Xu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/David-Xiang/Sunshine-Interview-Server/issues"
+  },
+  "homepage": "https://github.com/David-Xiang/Sunshine-Interview-Server#readme"
+}
