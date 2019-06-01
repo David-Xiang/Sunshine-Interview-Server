@@ -10,8 +10,9 @@ let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
-let ip = "129.28.159.207";
-
+let ip = "localhost";
+let slaveIp = "localhost";
+let slavePort = 15213;
 
 /** 
  * Utilities
@@ -53,52 +54,92 @@ let server = http.createServer(async function(req, res) {
             responseJson(res, result);
             break;
         case "/validate": 
-            result = await getInterviewInfo(query["siteid"].substring(0, query["siteid"].length-2), query["siteid"], query["validatecode"]);
+            result = await getInterviewInfo(
+                query["siteid"].substring(0, query["siteid"].length-2), 
+                query["siteid"], 
+                query["validatecode"]);
             responseJson(res, result);
             break;
         case "/side":
-            result = await chooseSide(query["collegeid"], query["siteid"], query["side"]);
+            result = await chooseSide(
+                query["collegeid"], 
+                query["siteid"], 
+                query["side"]);
             responseJson(res, result);
             break;
         case "/order":
-            result = await chooseOrder(query["collegeid"], query["siteid"], query["order"]);
+            result = await chooseOrder(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"]);
             responseJson(res, result);
             break;
         case "/teacher":
-            result = await teacherSignin(query["collegeid"], query["siteid"], query["order"], query["id"]);
+            result = await teacherSignin(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"], 
+                query["id"]);
             responseJson(res, result);
             break;
         case "/querystudent":
-            result = await queryStudent(query["collegeid"], query["siteid"], query["order"]);
+            result = await queryStudent(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"]);
             responseJson(res, result);
             break;
         case "/start":
-            result = await start(query["collegeid"], query["siteid"], query["order"]);
+            result = await start(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"]);
             responseJson(res, result);
             break;
         case "/end":
-            result = await end(query["collegeid"], query["siteid"], query["order"]);
+            result = await end(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"]);
             responseJson(res, result);
             break;
         case "/queryorder":
-            result = await queryOrder(query["collegeid"], query["siteid"]);
+            result = await queryOrder(
+                query["collegeid"], 
+                query["siteid"]);
             responseJson(res, result);
             break;
         case "/student":
-            result = await studentSignin(query["collegeid"], query["siteid"], query["order"], query["id"]);
+            result = await studentSignin(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"], 
+                query["id"]);
             responseJson(res, result);
             break;
         case "/querystart":
-            result = await queryStart(query["collegeid"], query["siteid"], query["order"]);
+            result = await queryStart(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"]);
             responseJson(res, result);
             break;
         case "/queryend":
-            result = await queryEnd(query["collegeid"], query["siteid"], query["order"]);
+            result = await queryEnd(
+                query["collegeid"], 
+                query["siteid"], 
+                query["order"]);
             responseJson(res, result);
             break;
         case "/upload":
             // path like "/videos/6000060/1.mp4"
-            handleUpload(req, res, pathinfo.path, query["id"], query["collegeid"], query["interviewid"]);
+            handleUpload(
+                req, 
+                res, 
+                pathinfo.path, 
+                query["id"], 
+                query["collegeid"], 
+                query["interviewid"]);
             break;
         case "/download":
             await handleDownload(res, pathinfo.path);
@@ -132,7 +173,11 @@ let server = http.createServer(async function(req, res) {
             }
             break;
         case "/addhash":
-            handleAddHash(req, res, query["interviewid"], query["index"], query["hash"]);
+            handleAddHash(
+                req, res, 
+                query["interviewid"], 
+                query["index"], 
+                query["hash"]);
             break;
         case "/verifyhash":
             handleVerifyHash(req, res, query["interviewid"]);
@@ -146,6 +191,7 @@ let server = http.createServer(async function(req, res) {
 
 server.listen(80);
 console.log("Server starts on port " + 80);
+sendVideoToSlave("/videos/banner.png.html", "12341523462");
 //ip = showLocalIP();
 
 function responseJson(res, json){
@@ -182,6 +228,7 @@ function handleAddHash(req, res, interviewId, index, hash){
     }
     let collegeId = interviewId.substring(0, 2);
     dbconnect.setBlockStringToDB(collegeId, interviewId, hash);
+    dbconnect.updateAfterInterviewToDB(collegeId, interviewId);
     console.log("[handleAddHash] arg: ");
     console.log(arg);
     chain.addHashToChain(arg, function(data){
@@ -226,14 +273,16 @@ async function handleSearch(req, res){
     req.on('end', async function(){
         dataStr = decodeURI(dataStr);
         let reqJson = JSON.parse(dataStr);
-        let data = await dbconnect.webValidateCertificationFromDB(reqJson.studentID);
+        let data = 
+        await dbconnect.webValidateCertificationFromDB(reqJson.studentID);
         data = JSON.parse(data);
         if (data.legal == "false"){
             responseJson(res, illegalRequest);
             return;
         }
         //let data = {interviewID: 660001};
-        let videoInfo = JSON.parse(fs.readFileSync("./files/videos/" + data.interviewID + "/info.json"));
+        let videoInfo = JSON.parse(fs.readFileSync("./files/videos/" + 
+            data.interviewID + "/info.json"));
         console.log("VIDEO INFO");
         console.log(videoInfo);
         let arr = videoInfo.urls;
@@ -263,26 +312,27 @@ function handleLogin(req, res){
         dataStr = decodeURI(dataStr);
         let reqJson = JSON.parse(dataStr);
         console.log(reqJson);
-        if (typeof(reqJson.username) !== "string" || typeof(reqJson.password) !== "string"){
+        if (typeof(reqJson.username) !== "string" || 
+            typeof(reqJson.password) !== "string"){
             responseJson(res, illegalRequest);
             return;
         }
-        //let secretKey = "SunshineInterview";
-        //reqJson.password = encryptor.decrypt(reqJson.password, secretKey, 256);
-        // console.log("deciphered key");
-        // console.log(reqJson.password);
+
         let info = null;
         switch (reqJson.loginState){
             case "student":
-                info = await dbconnect.webValidateCertificationFromDB(reqJson.password, reqJson.username);
+                info = await dbconnect.webValidateCertificationFromDB(
+                    reqJson.password, reqJson.username);
                 responseText(res, info);
                 break; 
             case "teacher":
-                info = await dbconnect.webValidateInformationFromDB(reqJson.username, reqJson.password);
+                info = await dbconnect.webValidateInformationFromDB(
+                    reqJson.username, reqJson.password);
                 responseText(res, info);
                 break; 
             case "school":
-                info = await dbconnect.webValidateVideoFromDB(reqJson.username, reqJson.password);
+                info = await dbconnect.webValidateVideoFromDB(
+                    reqJson.username, reqJson.password);
                 responseText(res, info);
                 break;
             default: 
@@ -370,9 +420,9 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
     // realpath like "/videos/6000060/1.mp4" or /images/xxx.jpg
     collegeId = collegeId || interviewId.substring(0, 2);
     if (!realpath)
-        return illegalRequest;
+        responseJson(res, illegalRequest);
     if (req.method.toLowerCase() !== "post")
-        return illegalRequest;
+        responseJson(res, illegalRequest);
 
     let form = new formidable.IncomingForm();
     form.encoding = 'utf-8';
@@ -391,7 +441,8 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
         fs.renameSync(files.img.path, realpath);
         
         if (('.jpg.jpeg.png.gif').indexOf(fileExt.toLowerCase()) !== -1){
-            dbconnect.setImgURLToDB(collegeId, id, '/images/' + files.img.name);
+            dbconnect.setImgURLToDB(collegeId, id, 
+                '/images/' + files.img.name);
             let ret = {
                 "type": "upload_info", 
                 "status": "success"
@@ -413,7 +464,6 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             let dirPath = "./files/videos/" + interviewId;
             let videosInfoPath =  dirPath + "/info.json";
             if (!fs.existsSync(videosInfoPath)){
-                console.log("[handleUpload] create " + interviewId + "/info.json");
                 let info = {
                     count: 0,
                     urls: []
@@ -422,7 +472,7 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             }
             let videoInfo = JSON.parse(fs.readFileSync(videosInfoPath));
             videoInfo.count = videoInfo.count + 1;
-            videoInfo.urls.push(realpath.substring(7, realpath.length)); //TODO delete ./files
+            videoInfo.urls.push(realpath.substring(7, realpath.length));
             console.log("[handleUpload] videoInfo:");
             console.log(videoInfo);
             fs.writeFileSync(videosInfoPath, JSON.stringify(videoInfo));
@@ -433,9 +483,7 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             // verify hash from chain
             verifyOneHashFromChain(arg);
 
-            // send video and hash to slaves
-            // TODO
-            //sendVideoToSlave(filepath, hash);
+            sendVideoToSlave(realpath, hash);
         }
         
     });
@@ -453,13 +501,37 @@ function verifyOneHashFromChain(arg){
 }
 
 function sendVideoToSlave(filepath, hash){
-
+    //console.log("[sendVideoToSlave] filepath is " + filepath);
+    let realpath = "./files/" + filepath;
+    let upUrl = "http://" + slaveIp + "/upload" + filepath;
+    //console.log("[sendVideoToSlave] url is " + upUrl);
+    fs.exists(realpath, function(exist){
+        let option = {
+            host: slaveIp, 
+            path: '/upload' + filepath, 
+            port: 15213,
+            method: 'POST',
+        };
+        let client = http.request(option, function(res){
+            let data = '';
+            res.on('data', function(chunk){
+                data += chunk;
+            });
+            res.on('end', function(){
+                console.log(data);
+            });
+        });
+        let downUrl = "http://" + ip  + "/download" + filepath;
+        client.write(downUrl);
+        client.end();
+    });
 }
 
 function handleSite(res, realpath){
     fs.exists(realpath, function(exist){
         if (!exist){
-            responseError(res, "This request URL " + realpath + " was not found on this server.");
+            responseError(res, "This request URL " + realpath 
+                + " was not found on this server.");
             return;
         }
         fs.readFile(realpath, "binary", function(err, file){
@@ -481,12 +553,14 @@ function handleSite(res, realpath){
 async function handleDownload(res, realpath){
     let filePath = "./files/" + realpath;
     if (!await fs.existsSync(filePath)){
-        responseError(res, "Download request " + realpath + " was not found on this server.");
+        responseError(res, "Download request " + realpath 
+        + " was not found on this server.");
         return;
     }
     res.writeHead(200,{  
         'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
-        'Content-Disposition': 'attachment; filename=' + path.basename(filePath) //告诉浏览器这是一个需要下载的文件
+        'Content-Disposition': 'attachment; filename=' 
+        + path.basename(filePath) //告诉浏览器这是一个需要下载的文件
     });
     fs.createReadStream(filePath).pipe(res);
 }
@@ -532,7 +606,8 @@ async function getInterviewInfo(collegeId, siteId, validateCode){
         return illegalRequest;
 
     console.log("OOOOOO"+collegeId);
-    let resStr = await dbconnect.getInterViewInfoFromDB(collegeId, siteId, validateCode);
+    let resStr = await dbconnect.getInterViewInfoFromDB(
+                        collegeId, siteId, validateCode);
     let res = JSON.parse(resStr);
      
     return res;
@@ -591,7 +666,8 @@ async function teacherSignin(collegeId, siteId, order, id){
         return illegalRequest;
 
     // simply discard order information
-    let str = await dbconnect.checkTeacherSigninFromDB(collegeId, siteId, order, id);
+    let str = await dbconnect.checkTeacherSigninFromDB(
+                    collegeId, siteId, order, id);
     let res = JSON.parse(str);
 
     if (res.result  === "true"){
@@ -670,7 +746,8 @@ async function studentSignin(collegeId, siteId, order, id){
     if (!siteId || !order || !id)
         return illegalRequest;
 
-    let str = await dbconnect.checkStudentSigninFromDB(collegeId, siteId, order, id);
+    let str = await dbconnect.checkStudentSigninFromDB(
+                    collegeId, siteId, order, id);
     let res = JSON.parse(str);
     if (res.result  === "true"){
         await dbconnect.studentSigninToDB(collegeId, siteId, order, id);
