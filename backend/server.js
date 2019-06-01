@@ -191,7 +191,6 @@ let server = http.createServer(async function(req, res) {
 
 server.listen(80);
 console.log("Server starts on port " + 80);
-sendVideoToSlave("/videos/banner.png.html", "12341523462");
 //ip = showLocalIP();
 
 function responseJson(res, json){
