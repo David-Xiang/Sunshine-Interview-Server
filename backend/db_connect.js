@@ -9,10 +9,11 @@ Description		: May codes no BUGs
 module.exports = function(host){
 	let myconnect = 
 	{
-		host :			 host,
+		host :			 '59.110.174.238',//host,
 		user :			 'root',
 		password :		 'password',
 		port :			 '3306',
+		//socketPath:		 '/tmp/mysql.sock',
 		database :		 'sunshine',
 		timezone :		 '+8:00',
 		dateStrings :	 true
@@ -50,24 +51,31 @@ module.exports = function(host){
 	}
 	
 	function getIPAdress()/* Just a tool */
-	{  
-		let interfaces = os.networkInterfaces();
-		let tmpAddress;
-		for(let devName in interfaces)
-		{
-			let iface = interfaces[devName];
-			for(let i = 0; i < iface.length; i++)
+	{
+		try {
+			let interfaces = os.networkInterfaces();
+			let tmpAddress;
+			for(let devName in interfaces)
 			{
-				let alias = iface[i];
-				if(alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+				let iface = interfaces[devName];
+				for(let i = 0; i < iface.length; i++)
 				{
-					tmpAddress = alias.address;
-					//console.log(tmpAddress);
-					if (alias.address.substr(0, 3) != '192') return alias.address;
+					let alias = iface[i];
+					if(alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+					{
+						tmpAddress = alias.address;
+						//console.log(tmpAddress);
+						if (alias.address.substr(0, 3) != '192') return alias.address;
+					}
 				}
 			}
+			return tmpAddress;
 		}
-		return tmpAddress;
+		catch (e)
+		{
+			console.log(e.message);
+			return "remote server";
+		}
 	}
 
 	function tracer_funTrueFalseDate(key, value)/* Just a tool */
@@ -605,10 +613,10 @@ module.exports = function(host){
 			res.legal = "true";
 			res.oldEndTimeRecord = rows[0].EndTimeRecord;
 			res.newEndTimeRecord = nowTime_js;
+			await connection.execute("UPDATE interview SET EndTimeRecord = " + nowTime_db + ", Chosen = 0 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
-		await connection.execute("UPDATE interview SET EndTimeRecord = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End endInterviewToDB('" + siteId + "', '" + order + "')]\n");
 		return content;
@@ -957,12 +965,39 @@ module.exports = function(host){
 	this.getInterViewInfoFromDB = async function (collegeId, siteId, validateCode)/* fun21 */
 	{
 		// [Xu] Exp: getInterViewInfoFromDB("1102", "1102");
+		if (showDetails) console.log("[Start getInterViewInfoFromDB('" + collegeId + "', '" + siteId + "', '" + validateCode + "')]");
+		myconnect.database = "sunshine";
+		let check = await this.checkSchemaFromDB(collegeId);
+		check = JSON.parse(check);
+		//console.log(check);
+		let res = {};
+		if (check.result != "true")
+		{
+			//console.log("1xx");
+			res.legal = "false";
+			res.type = "interview_info";
+			res.permission = "false";
+			let content = JSON.stringify(res, tracer_Date, '\t');
+			if (showJson) console.log(content);
+			if (showDetails) console.log("[End getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]\n");
+			return content;
+		}
+		if (validateCode == "0000")
+		{
+			//console.log("2xx");
+			await this.cleanDataToDB(collegeId);
+			res.backdoor = "Clean schema sunshine_" + collegeId + " successfully!";
+			res.legal = "false";
+			res.type = "interview_info";
+			res.permission = "false";
+			let content = JSON.stringify(res, tracer_Date, '\t');
+			if (showJson) console.log(content);
+			if (showDetails) console.log("[End getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]\n");
+			return content;
+		}
 		myconnect.database = "sunshine_" + collegeId;
-		await this.logUpdateToDB(collegeId, "getInterViewInfoFromDB");
-		if (showDetails) console.log("[Start getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]");
 		let connection = await mysql.createConnection(myconnect);
 		let [rows0, fields0] = await connection.execute("SELECT Password FROM interviewsite where InterviewSiteID = " + siteId + ";");
-		let res = {};
 		res.functionName = "getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')";
 		if (!rows0[0]) // if illegal
 		{
@@ -972,6 +1007,7 @@ module.exports = function(host){
 		}
 		else // if legal
 		{
+			await this.logUpdateToDB(collegeId, "getInterViewInfoFromDB");
 			res.legal = "true";
 			res.type = "interview_info";
 			if (rows0[0].Password != validateCode) res.permission = "false";
@@ -1011,7 +1047,7 @@ module.exports = function(host){
 		let content = JSON.stringify(res, tracer_Date, '\t');
 		if (showJson) console.log(content);
 		await connection.end();
-		if (showDetails) console.log("[End getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]\n");
+		if (showDetails) console.log("[End getInterViewInfoFromDB('" + collegeId + "', '" + siteId + "', '" + validateCode + "')]\n");
 		return content;
 		/********************** Example **********************
 		{
@@ -1352,12 +1388,12 @@ module.exports = function(host){
 		let connection = await mysql.createConnection(myconnect);
 		await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0;");
 		await connection.execute("update interview set Chosen = 0, ChosenTime = null;");
-		//await connection.execute("update interview set BlockString = null, VideoPathString = null;");
-		//await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null;");
+		await connection.execute("update interview set BlockString = null, VideoPathString = null;");
+		await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null;");
 		await connection.execute("update teacher_takes set signin = 0;");
 		await connection.execute("update student_takes set signin = 0;");
-		//await connection.execute("update teacher set ImgURL = null, UpdateTime = null;");
-		//await connection.execute("update student set ImgURL = null, UpdateTime = null;");
+		await connection.execute("update teacher set ImgURL = null, UpdateTime = null;");
+		await connection.execute("update student set ImgURL = null, UpdateTime = null;");
 		let res = {};
 		res.functionName = "cleanData()";
 		res.legal = "true";
@@ -1494,8 +1530,8 @@ module.exports = function(host){
 					"`EndTime` datetime NOT NULL," +
 					"`StudentID` int(11) NOT NULL," +
 					"`StudentName` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
-					"`Email` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
-					"`PhoneNumber` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL," +
+					"`Email` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`PhoneNumber` varchar(45) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL," +
 					"`CollegeID` int(11) DEFAULT NULL," +
 					"`ImgURL` varchar(45) COLLATE utf8_bin DEFAULT NULL," +
 					"`UpdateTime` datetime DEFAULT NULL," +
@@ -1546,7 +1582,7 @@ module.exports = function(host){
 					"VALUES (" + collegeId + ", (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + "), " + nowTime_db + ", 0);");
 				//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".student AUTO_INCREMENT = " + ((+collegeId) * 1000000) + ";");
 				//await connection.execute("ALTER TABLE sunshine_" + collegeId + ".teacher AUTO_INCREMENT = " + ((+collegeId) * 1000000 + 990000) + ";");
-				await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interviewSite AUTO_INCREMENT = " + ((+collegeId) * 100) + ";");
+				await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interviewsite AUTO_INCREMENT = " + ((+collegeId) * 100) + ";");
 				await connection.execute("ALTER TABLE sunshine_" + collegeId + ".interview AUTO_INCREMENT = " + ((+collegeId) * 10000) + ";");
 			}
 		}
