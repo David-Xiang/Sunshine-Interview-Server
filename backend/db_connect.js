@@ -614,9 +614,11 @@ module.exports = function(host){
 			res.oldEndTimeRecord = rows[0].EndTimeRecord;
 			res.newEndTimeRecord = nowTime_js;
 			await connection.execute("UPDATE interview SET EndTimeRecord = " + nowTime_db + ", Chosen = 0 where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
+			
 		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
+		
 		await connection.end();
 		if (showDetails) console.log("[End endInterviewToDB('" + siteId + "', '" + order + "')]\n");
 		return content;
@@ -1173,7 +1175,7 @@ module.exports = function(host){
 		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		if (showDetails) console.log("[Start studentQueryOrderFromDB('" + siteId + "')]");
 		let connection = await mysql.createConnection(myconnect);
-		let [rows0, fields0] = await connection.execute("select InterviewID as 'interviewID', OrderNumber as 'order', ChosenTime as'chosen_time' from interview where Chosen = 1 and InterviewSiteID = " + siteId + " order by ChosenTime DESC;");
+		let [rows0, fields0] = await connection.execute("select InterviewID as 'interviewID', OrderNumber as 'order', ChosenTime as 'chosen_time', Skip as 'skip' from interview where Chosen = 1 and InterviewSiteID = " + siteId + " order by ChosenTime DESC;");
 		let res = {};
 		res.functionName = "studentQueryOrderFromDB('" + siteId + "')";
 		if (!rows0[0]) // if illegal
@@ -1201,6 +1203,8 @@ module.exports = function(host){
 				res.info.order = rows0[0].order;
 				res.info.interviewID = rows0[0].interviewID;
 				res.info.chosen_time = rows0[0].chosen_time;
+				if (rows0[0].skip == 1) res.info.skip = "true";
+				else res.info.skip = "false";
 			}
 			else
 			{
@@ -1224,7 +1228,7 @@ module.exports = function(host){
 			"factInterval_minute": "1.75",
 			"info": {
 					"order": "第2场",
-					"interviewID": 770007
+					"interviewID": 770007,
 					"chosen_time": "2019-03-21 02:33:40"
 			}
 		}
@@ -1459,6 +1463,7 @@ module.exports = function(host){
 					"`ChosenTime` datetime DEFAULT NULL," +
 					"`BlockString` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
 					"`VideoPathString` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL," +
+					"`Skip` int(11) DEFAULT '0'," + //new added 2019/06/20
 					"PRIMARY KEY (`InterviewID`)" +
 					") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;");
 					
@@ -2381,6 +2386,33 @@ module.exports = function(host){
 			"functionName": "getVideoPathStringFromDB('66', '660000')]",
 			"legal": "true",
 			"result": "null"
+		}
+		********************** Example **********************/
+	}
+	
+	this.skipSigninToDB = async function (collegeId, siteId, order)/* fun44 */
+	{
+		// [Xu] Exp: skipSigninToDB("77", "7701", "第1场");
+		myconnect.database = "sunshine_" + collegeId;
+		let functionNameString = "skipSigninToDB('" + collegeId + "', '" + siteId + "', '" + order + "')";
+		await this.logUpdateToDB(collegeId, "skipSigninToDB");
+		if (showDetails) console.log("[Start " + functionNameString + "]");
+		let connection = await mysql.createConnection(myconnect);
+		let res = {};
+		res.functionName = functionNameString;
+		await connection.execute("update teacher_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+		await connection.execute("update student_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+		await connection.execute("update interview set Skip = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+		res.legal = "true";
+		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
+		if (showJson) console.log(content);
+		await connection.end();
+		if (showDetails) console.log("[End " + functionNameString + "]\n");
+		return content;
+		/********************** Example **********************
+		{
+			"functionName": "skipSigninToDB('77', '7701', '第1场')",
+			"legal": "true"
 		}
 		********************** Example **********************/
 	}
