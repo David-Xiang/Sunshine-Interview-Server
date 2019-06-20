@@ -242,7 +242,8 @@ function handleAddHash(req, res, interviewId, index, hash){
     // videoId += index;
     let arg = {
         videoID: videoId,
-        hash: hash
+        index,
+        hash
     }
     let collegeId = interviewId.substring(0, 2);
     dbconnect.setBlockStringToDB(collegeId, interviewId, hash);
@@ -329,16 +330,9 @@ function getHashsFromChain(result, callback){
             return;
         }
         
-	console.log("[getHash]");
-	console.log(dataInfo.result);
-        let set = new Set(JSON.parse(dataInfo.result));
-        let hashs = result.videos.info.map(v=>v.hash);
-        let isAllHashsOnChain = hashs.every(v=>set.has(v));
-        if (!isAllHashsOnChain){
-            console.log("[getHashsFromChain] WARNING: not all hashs are stored on chain");
-            console.log(dataInfo);
-            console.log(result);
-        }
+        console.log("[getHashsFromChain]");
+        let hashs = JSON.parse(dataInfo.result);
+        result.videos.info.map(v => v.hashChain = hashs[v.index]);
         callback(result);
     });
 }
@@ -516,7 +510,7 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             let arg = {
                 videoID: interviewId,
                 index: parseInt(path.basename(realpath)),
-                hash: hash
+                hashFile: hash
             }
             console.log("[handleUpload] upload videos success.");
 
@@ -533,7 +527,8 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             videoInfo.count = videoInfo.count + 1;
             videoInfo.info.push({
                 url: realpath.substring(7, realpath.length),
-                hash: hash
+                index: parseInt(path.basename(realpath)),
+                hashFile: hash
             });
             console.log("[handleUpload] videoInfo:");
             console.log(videoInfo);
