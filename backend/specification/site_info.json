@@ -2,6 +2,7 @@
     "type": "site_info",
     "permission": "true",
     "info": {
-        "order": "01"
+        "order": "01",
+        "skip": "true"
     }
 }

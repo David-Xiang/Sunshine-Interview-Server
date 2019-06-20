@@ -35,6 +35,8 @@ let illegalRequest = {
     "error": "request"
 }
 
+let session = {};
+
 let server = http.createServer(async function(req, res) {
     console.log(new Date().toLocaleString() + ": Received request " + req.url);
 
@@ -72,6 +74,14 @@ let server = http.createServer(async function(req, res) {
                 query["collegeid"], 
                 query["siteid"], 
                 query["order"]);
+            responseJson(res, result);
+            break;
+        case "/skip":
+            result = await skipSignin(
+                query["collegeid"],
+                query["siteid"],
+                query["order"]
+            );
             responseJson(res, result);
             break;
         case "/teacher":
@@ -182,6 +192,9 @@ let server = http.createServer(async function(req, res) {
         case "/verifyhash":
             handleVerifyHash(req, res, query["interviewid"]);
             break;
+        case "tableprocess":
+            handleTableProcess(req, res, query["sessionid"]);
+            break;
         default:
             result = illegalRequest;
             responseJson(res, result);
@@ -207,6 +220,12 @@ function responseError(res, text){
     res.writeHead(404, {'Content-Type': 'text/plain'});
     res.write(text);
     res.end();
+}
+
+function handleTableProcess(req, res, sessionId){
+    console.log("[handleTableProcess]");
+    console.log(session.sessionId);
+    responseJson(res, session.sessionId);
 }
 
 function handleAddHash(req, res, interviewId, index, hash){
@@ -272,13 +291,14 @@ async function handleSearch(req, res){
     req.on('end', async function(){
         dataStr = decodeURI(dataStr);
         let reqJson = JSON.parse(dataStr);
-        let data = 
-        await dbconnect.webValidateCertificationFromDB(reqJson.studentID);
+        let data =  await dbconnect.
+                          webValidateCertificationFromDB(reqJson.studentID);
         data = JSON.parse(data);
         if (data.legal == "false"){
             responseJson(res, illegalRequest);
             return;
         }
+
         //let data = {interviewID: 660001};
         let videoInfo = JSON.parse(fs.readFileSync("./files/videos/" + 
             data.interviewID + "/info.json"));
@@ -289,12 +309,37 @@ async function handleSearch(req, res){
             arr[i] = "http://" + ip + "/download" + arr[i];
         }
         data.videos = videoInfo;
-        res.write(JSON.stringify(data));
-        res.end();
+
+        getHashsFromChain(data, (result)=>{
+            res.write(JSON.stringify(result));
+            res.end();
+        });
     });
 }
 
-
+function getHashsFromChain(result, callback){
+    let arg = {
+        videoID: result.interviewID, 
+    }
+    chain.getHashsFromChain(arg, (data)=>{
+        let dataInfo = JSON.parse(data.data);
+        if (dataInfo.result != "success"){
+            console.log("[getHashsFromChain] WARNING: error in connection with chain");
+            console.log(dataInfo);
+            return;
+        }
+        
+        let set = new Set(...data.data);
+        let hashs = result.videos.info.map(v=>v.hash);
+        let isAllHashsOnChain = hashs.every(v=>set.has(v));
+        if (!isAllHashsOnChain){
+            console.log("[getHashsFromChain] WARNING: not all hashs are stored on chain");
+            console.log(dataInfo);
+            console.log(result);
+        }
+        callback(result);
+    });
+}
 
 async function handleSiteTable(req, res, CollegeID){
     let data = await dbconnect.webGetSiteTableFromDB(CollegeID);
@@ -354,9 +399,20 @@ async function handleRegister(req, res){
     req.on('end', async function(){
         let foundCollegeID = false;
         dataStr = decodeURI(dataStr);
-        responseJson(res, permission);
+        let sessionId = Math.random().toString(36).slice(-8);
+        responseJson(res, { sessionId });
+        session.sessionId = {
+            total: 0,
+            inserted: 0 
+        };
         let data = JSON.parse(dataStr);
         let collegeID = null;
+        if (data.hasOwnProperty("teacher")){
+            session.sessionId.total += data.teacher.length;
+        } 
+        if (data.hasOwnProperty("student")){
+            session.sessionId.total += data.student.length;
+        }
         if (data.hasOwnProperty("teacher")){
             let arr = data.teacher;
             for (let i = 0; i < arr.length; i++){
@@ -376,6 +432,7 @@ async function handleRegister(req, res){
                                 item.Email, 
                                 item.PhoneNumber,
                                 item.DeptName);
+                session.sessionId.inserted = i + 1;
                 res = JSON.parse(res);
                 if (res.legal === false){
                     console.log("Error in inserting teachers' info!");
@@ -401,6 +458,7 @@ async function handleRegister(req, res){
                                 item.StudentName, 
                                 item.Email, 
                                 item.PhoneNumber);
+                session.sessionId.inserted = i + 1;
                 res = JSON.parse(res);
                 if (res.legal === false){
                     console.log("Error in inserting students' info!");
@@ -465,13 +523,16 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             if (!fs.existsSync(videosInfoPath)){
                 let info = {
                     count: 0,
-                    urls: []
+                    info: []
                 };
                 fs.writeFileSync(videosInfoPath, JSON.stringify(info));
             }
             let videoInfo = JSON.parse(fs.readFileSync(videosInfoPath));
             videoInfo.count = videoInfo.count + 1;
-            videoInfo.urls.push(realpath.substring(7, realpath.length));
+            videoInfo.info.push({
+                url: realpath.substring(7, realpath.length),
+                hash: hash
+            });
             console.log("[handleUpload] videoInfo:");
             console.log(videoInfo);
             fs.writeFileSync(videosInfoPath, JSON.stringify(videoInfo));
@@ -655,6 +716,18 @@ async function chooseOrder(collegeId, siteId, order){
         return retval;
     }
     return denyPermission;
+}
+
+/**
+ * /skip?siteid=0001&collegeid=01&order=01 
+ */
+async function skipSignin(collegeId, siteId, order){
+    if (!collegeId || !order || !siteId)
+        return illegalRequest;
+    await dbconnect.skipSigninToDB(collegeId, siteId, order);
+    await dbconnect.startInterviewToDB(collegeId, siteId, order);
+    
+    return permission;
 }
 
 /**
