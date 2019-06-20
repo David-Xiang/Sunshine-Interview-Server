@@ -10,8 +10,8 @@ let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
-let ip = "localhost";
-let slaveIp = "localhost";
+let ip = "129.28.159.207";
+let slaveIp = "59.110.174.238";
 let slavePort = 15213;
 
 /** 
@@ -192,7 +192,7 @@ let server = http.createServer(async function(req, res) {
         case "/verifyhash":
             handleVerifyHash(req, res, query["interviewid"]);
             break;
-        case "tableprocess":
+        case "/tableprocess":
             handleTableProcess(req, res, query["sessionid"]);
             break;
         default:
@@ -329,6 +329,8 @@ function getHashsFromChain(result, callback){
             return;
         }
         
+	console.log("[getHash]");
+	console.log(dataInfo.result);
         let set = new Set(JSON.parse(dataInfo.result));
         let hashs = result.videos.info.map(v=>v.hash);
         let isAllHashsOnChain = hashs.every(v=>set.has(v));
@@ -432,7 +434,7 @@ async function handleRegister(req, res){
                                 item.Email, 
                                 item.PhoneNumber,
                                 item.DeptName);
-                session.sessionId.inserted = i + 1;
+                session.sessionId.inserted++;
                 res = JSON.parse(res);
                 if (res.legal === false){
                     console.log("Error in inserting teachers' info!");
@@ -458,7 +460,7 @@ async function handleRegister(req, res){
                                 item.StudentName, 
                                 item.Email, 
                                 item.PhoneNumber);
-                session.sessionId.inserted = i + 1;
+                session.sessionId.inserted++;
                 res = JSON.parse(res);
                 if (res.legal === false){
                     console.log("Error in inserting students' info!");

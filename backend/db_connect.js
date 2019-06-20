@@ -1722,7 +1722,7 @@ module.exports = function(host){
 		await connection.execute("update interviewsite set `CollegeName` = (select CollegeName from collegenames.namedata where CollegeID = " + collegeId + ");");
 		res.build_interviewSite = "success";//建立interviewSite成功
 		await connection.execute("insert into interview select distinct null,q.InterviewSiteID,null," + 
-			"StartTime,EndTime,null,null,0,null,null,null from xls_student_takes as p, interviewsite as q where q.InterviewSite = p.InterviewSiteName order by q.InterviewSiteID, StartTime;");
+			"StartTime,EndTime,null,null,0,null,null,null,0 from xls_student_takes as p, interviewsite as q where q.InterviewSite = p.InterviewSiteName order by q.InterviewSiteID, StartTime;");
 		if (true)
 		{
 			let [rows, fields] = await connection.execute("SELECT * from interview;");
