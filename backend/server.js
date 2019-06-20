@@ -323,13 +323,13 @@ function getHashsFromChain(result, callback){
     }
     chain.getHashsFromChain(arg, (data)=>{
         let dataInfo = JSON.parse(data.data);
-        if (dataInfo.result != "success"){
+        if (dataInfo.status != "Success"){
             console.log("[getHashsFromChain] WARNING: error in connection with chain");
             console.log(dataInfo);
             return;
         }
         
-        let set = new Set(...data.data);
+        let set = new Set(JSON.parse(dataInfo.result));
         let hashs = result.videos.info.map(v=>v.hash);
         let isAllHashsOnChain = hashs.every(v=>set.has(v));
         if (!isAllHashsOnChain){
@@ -552,7 +552,7 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
 function verifyOneHashFromChain(arg){
     chain.verifyOneHashFromChain(arg, function(data){
         let dataInfo = JSON.parse(data.data);
-        if (dataInfo.result != "success"){
+        if (dataInfo.status != "Success"){
             console.log("[verifyOneHashFromChain] WARNING: dataInfo");
             console.log(dataInfo);
             return;

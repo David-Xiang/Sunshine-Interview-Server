@@ -3976,5 +3976,26 @@ module.exports = function(){
         // send url
         sendHttpRequest(url, callback);
     }
+
+    this.getHashsFromChain = function(arg, callback){
+        if (!arg.hasOwnProperty("videoID")){
+            console.log("[getHashsFromChainSync] arg is wrong!");
+            console.log(arg);
+            return;
+        }
+        let val = {
+            contractID : "SunshineInterview",
+            action : "getHashs", 
+            arg : JSON.stringify(arg)
+        };
+
+        let url = "/SCIDE/SCManager?action=executeContractEncrypted&contractRequest=";
+        let priKey = "ODczNTMxNTViYWY2MDg3NzczN2EyYTIwNjNjZDkwZTQwOTY2NzI2ZDJhY2Q5NGY2YmE3YzE1ZWYxYzc3NDI0YjNjNTE4MDg4YjMwMmVjODNlNThmNTNkM2ZkZWZlMjc2MjcyMzY2ZDM1ODg1ZjI4NTJmYmYwMDlmNDZkNmQwOWE4NjJiYmM1MDM3NzNlZDllMmRjZjkyMjc1NTIwNGJlZjIyMzQ4N2YwZTU1MDc1MWNmODk1NDM2YjQ3M2NhZTNjM2ZmODU1OGJhMTJjZTc2OTEzYTAzYzZkZjg5Y2UwMGQ4YzAyMTRkOTllYmRlZmU0YmU0MTg5MDI0ZmYyZDlkMzZlZDJjODZkNTlkMWY2Nzg0ZWE5YTNiMGE2MTk5YWUyNzcxZjYwYWVhOWUyNTE4MTVjM2RhMDkzYTNhNWIzMzNmZThjOGZmNGVlMWJkZDE2MWJkM2EyOGIyMDRiZGFmN2U4MmY0OGZiNDEzMjBiMzQ4MzE0NjU2MDhlYTYyZWZkMDIwNTY3YjU0YTYzMTcwMmZiZGUzNWY4MDZmN2E3YmE2YTViYTI5OTVlMDMwY2Q5MWVhOTU1ZjEwYzE3MTkwZjY1YThiMjdmNzM2ODc4YjY3NTUyZDY4MGZhY2EwYzljNjEzZGY0NTNlNmNjZjBiZmIzNGU5ODJlOWYyZDBkZDUsMTAwMDEsMzhkNTY3MzM3ZTJmNDU0N2QwYzY5ZDQ2OTgyZDI0YTY3NjNkMTYwNDQ1NjViZDI0MjkyNzU3YTBmNmZhM2E2NzlkYTczNGJjNDE2MzBkNDAzNDEyOTc0ZTE5MDNlOGQxNzk4YTJjMDJkMmM3MWIzNjU4ZTc5NGJmNWVlYjk1MmMxZjExZWI0YTVjYzRlMjMxMDc1OGE1M2FkYjUxODQxOWI0ZWIxN2U5NmViYWVmM2Y4YTRlNTNkNDk4NTEyZDdjMmRmNzk5MWRlNDU2MTdiZmQ3N2MxNzZhYjI4MjVlYmJkMzBhNWNmMTRkMDRkMWZkZjhlYjViNDgxOThiMWY3YzVmZWE5M2JhNzNhZDkwMGI1ZDViMzBjZGE3MDEzOGIyZGE1OWViNDQ3MWExM2E2MzVhNTdjODVlZjQwZjY1NWUyODA1YzkzMWM4YmM5MzA5MzFmZjM1NGViOGIyYjJjZGRkOTQ4NTIxN2JiMzcxZjhiYzA3NzdkMjU5NDhjM2FmNzJmYThjNzNjOTdiMGIxMTdhYTI4ZGFmZmQ0NGZmOGMwOGZmNmIwYmNkN2U5Zjc5YjE4ODE3YmQ1MDE2ODc1NTYzZWI5OGE4NmE1Yjc1NjFiYWI1YTU4NDI4NGQwMWMzZmU5ZjBhMGRiMjgxYjI2ZjU2MTczNDBkMGRkMGZiODE=";
+        let pubKey = loadRSAKey(priKey);
+        let eReq = encryptReq(val, pubKey);
+        url += encodeURIComponent(JSON.stringify(eReq));
+        // send url
+        sendHttpRequest(url, callback);
+    }
     return this;
 }
