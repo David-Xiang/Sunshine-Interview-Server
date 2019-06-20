@@ -1229,7 +1229,8 @@ module.exports = function(host){
 			"info": {
 					"order": "第2场",
 					"interviewID": 770007,
-					"chosen_time": "2019-03-21 02:33:40"
+					"chosen_time": "2019-03-21 02:33:40",
+					"skip": "true";
 			}
 		}
 		********************** Example **********************/
@@ -2403,7 +2404,9 @@ module.exports = function(host){
 		await connection.execute("update teacher_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
 		await connection.execute("update student_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
 		await connection.execute("update interview set Skip = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+		let [rows, fields] = await connection.execute("select InterviewID from interview where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
 		res.legal = "true";
+		res.interviewID = rows[0].InterviewID;
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
 		await connection.end();

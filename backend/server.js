@@ -726,10 +726,11 @@ async function chooseOrder(collegeId, siteId, order){
 async function skipSignin(collegeId, siteId, order){
     if (!collegeId || !order || !siteId)
         return illegalRequest;
-    await dbconnect.skipSigninToDB(collegeId, siteId, order);
+    let result = await dbconnect.skipSigninToDB(collegeId, siteId, order);
+    result = JSON.parse(result);
     await dbconnect.startInterviewToDB(collegeId, siteId, order);
     
-    return permission;
+    return result;
 }
 
 /**
