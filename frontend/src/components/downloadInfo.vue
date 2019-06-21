@@ -95,7 +95,7 @@ export default {
     }
 
     $.ajax({
-      url: "/apis/sitetable?collegeid=" + _this.$globalVar.collegeID,
+      url: "/apis/apis/sitetable?collegeid=" + _this.$globalVar.collegeID,
       type: "get",
       //data: JSON.stringify({collegeid:_this.$globalVar.collegeID}),
       success: function (data, stats) {

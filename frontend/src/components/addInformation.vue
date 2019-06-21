@@ -55,6 +55,13 @@
           <div class="box-footer">
             <button type="button" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
           </div>
+          <div v-if="textDisplayDisabled">
+            <p class="help-block">正在上传中，请不要离开...</p>
+          </div>
+          <div>
+            <el-progress :percentage="uploadPercentage"></el-progress>
+          </div>
+
         </form>
       </div>
     </section>
@@ -68,11 +75,13 @@ export default {
   name: 'add',
   data () {
     return {
-      // TODO:
       teacherInfo:[],
       studentInfo:[],
       collegeID:"",
-      userimg: require('../assets/bigbrother.png')
+      userimg: require('../assets/bigbrother.png'),
+      sessionid:"",
+      uploadPercentage:0,
+      textDisplayDisabled:false
     }
   },
   methods: {
@@ -93,6 +102,37 @@ export default {
         timelist[0] = "0" + timelist[0];
       let newTime = timelist[0] + ":" + timelist[1];
       return newDate + " " +  newTime;
+    },
+
+    rr: function() {
+      console.log("rr called with sessionId:" + this.sessionid);
+      let _this = this;
+      if (_this.sessionid === "")
+        return;
+      $.ajax({
+        url: "/apis/tableprocess?sessionid=" + _this.sessionid,
+        type:"get",
+        success: function (data, stats) {
+          data = JSON.parse(data);
+          if (!data.hasOwnProperty("inserted") || !data.hasOwnProperty("total")) {
+            return;
+          }
+          else {
+            if (data["inserted"] === data["total"])
+              _this.$router.replace("/download");
+            else {
+              _this.uploadPercentage = Math.floor(data["inserted"] / data["total"] * 100);
+              setTimeout(function () {
+                _this.rr();
+              }, 2000);
+            }
+          }
+        },
+        error: function (err) {
+          alert("连接丢失，请重新上传");
+          _this.uploadPercentage = 0;
+        }
+      })
     },
 
     cmp: function(a, b)
@@ -178,19 +218,20 @@ export default {
       //alert("before post");
       //console.log(this.teacherInfo, this.);
       let _this = this;
+      _this.textDisplayDisabled = true;
 
       $.ajax({
-        url: "/apis/register",
+        url: "/apis/apis/register",
         type:"post",
         data:JSON.stringify({student:_this.studentInfo, teacher:_this.teacherInfo}),
         success:function (data, stats) {
-          console.log("yes!!!!!!");
+          console.log("post succeed! with response: " + data);
+          data = JSON.parse(data);
           _this.$globalVar.setStorage({
             "uploaded": "true"
           });
-          setTimeout(function(){
-            _this.$router.replace('/download');
-          }, 20000);
+          _this.sessionid = data["sessionId"];
+          _this.rr();
         },
         error: function (error) {
           console.log(error);

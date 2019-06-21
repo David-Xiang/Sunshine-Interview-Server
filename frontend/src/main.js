@@ -2,6 +2,8 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
 import router from './router'
 import './lib/jquery-vender.js'
 import 'bootstrap'
@@ -19,7 +21,7 @@ Vue.prototype.$video = Video
 Vue.prototype.$globalVar = globalVar
 
 Vue.use(generatePdf)
-
+Vue.use(ElementUI)
 window.eventBus = new Vue()
 
 Vue.config.productionTip = false
