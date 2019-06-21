@@ -3915,11 +3915,13 @@ module.exports = function(){
     }
     
     this.addHashToChain = function(arg, callback){
-        if (!arg.hasOwnProperty("videoID") || !arg.hasOwnProperty("hash")){
+        if (!arg.hasOwnProperty("videoID") || !arg.hasOwnProperty("hash") || !arg.hasOwnProperty("index")){
             console.log("[addHashToChain] arg is wrong!");
             console.log(arg);
             return;
         }
+        console.log("[addHashToChain] arg:");
+        console.log(arg);
         let val = {
             contractID : "SunshineInterview",
             action : "recordHash", 

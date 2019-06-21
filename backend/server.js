@@ -229,6 +229,12 @@ function handleTableProcess(req, res, sessionId){
 }
 
 function handleAddHash(req, res, interviewId, index, hash){
+    index = parseInt(index);
+    if (!Number.isInteger(index)){
+        console.log("[handleAddHash index is not a integer ");
+        responseError(res, "index is not a valid integer");
+        return;
+    }
     console.log("[handleAddHash] arguments: ");
     console.log(interviewId);
     console.log(index);
