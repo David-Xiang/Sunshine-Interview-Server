@@ -1392,7 +1392,7 @@ module.exports = function(host){
 		if (showDetails) console.log("[Start cleanDataToDB()");
 		let connection = await mysql.createConnection(myconnect);
 		await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0;");
-		await connection.execute("update interview set Chosen = 0, ChosenTime = null;");
+		await connection.execute("update interview set Chosen = 0, ChosenTime = null, Skip = 0;");
 		await connection.execute("update interview set BlockString = null, VideoPathString = null;");
 		await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null;");
 		await connection.execute("update teacher_takes set signin = 0;");
@@ -2392,33 +2392,58 @@ module.exports = function(host){
 	}
 	
 	this.skipSigninToDB = async function (collegeId, siteId, order)/* fun44 */
-	{
+	{	
 		// [Xu] Exp: skipSigninToDB("77", "7701", "第1场");
 		myconnect.database = "sunshine_" + collegeId;
 		let functionNameString = "skipSigninToDB('" + collegeId + "', '" + siteId + "', '" + order + "')";
 		await this.logUpdateToDB(collegeId, "skipSigninToDB");
 		if (showDetails) console.log("[Start " + functionNameString + "]");
+		let nowTime = new Date();
+		let nowTime_db = nowTime.Format("yyyyMMddhhmmss");
+		let nowTime_js = nowTime.Format("yyyy-MM-dd hh:mm:ss");
 		let connection = await mysql.createConnection(myconnect);
+		
+		
+		let [rows, fields] = await connection.execute("SELECT InterviewID as 'interviewID', Chosen as 'chosen', ChosenTime as 'chosenTime' FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		let res = {};
 		res.functionName = functionNameString;
-		await connection.execute("update teacher_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
-		await connection.execute("update student_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
-		await connection.execute("update interview set Skip = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
-		let [rows, fields] = await connection.execute("select InterviewID from interview where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
-		res.legal = "true";
-		res.interviewID = rows[0].InterviewID;
+		if (!rows[0])
+		{
+			res.legal = "false"; // if illegal
+			res.interviewID = "000000";
+			res.reason = "There is no such siteid with such order! Please check!";
+		}
+		else // if legal
+		{
+			await connection.execute("update teacher_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+			await connection.execute("update student_takes set Signin = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+			await connection.execute("update interview set Skip = 1 where InterviewSiteID = " + siteId + " and orderNumber = '" + order + "';");
+			res.legal = "true";
+			res.oldChosen = rows[0].chosen;
+			res.newChosen = "true";
+			res.interviewID = rows[0].interviewID;
+			res.oldChosenTime = rows[0].chosenTime;
+			res.newChosenTime = nowTime_js;
+		}
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
+		await connection.execute("UPDATE interview SET Chosen = 1, ChosenTime = " + nowTime_db + " where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
 		await connection.end();
 		if (showDetails) console.log("[End " + functionNameString + "]\n");
 		return content;
 		/********************** Example **********************
 		{
 			"functionName": "skipSigninToDB('77', '7701', '第1场')",
-			"legal": "true"
+			"legal": "true",
+			"oldChosen": "true",
+			"newChosen": "true",
+			"interviewID": 770002,
+			"oldChosenTime": "2019-06-20 22:25:58",
+			"newChosenTime": "2019-06-20 22:25:58"
 		}
 		********************** Example **********************/
 	}
+	
 };
 
 
