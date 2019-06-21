@@ -771,7 +771,8 @@ async function queryStudent(collegeId, siteId, order){
     result.info = res.info;
     for (let i = 0; i < result.info.length; i++){
         let item = result.info[i];
-        item["img_url"] = "http://" + ip + "/download" + item["img_url"];
+        if (item["img_url"] !== "null")
+            item["img_url"] = `http://${ip}/download${item["img_url"]}`;
     }
     return result;
 }
