@@ -226,7 +226,7 @@ function responseText(res, textString){
 
 function responseError(res, text){
     res.writeHead(404, {'Content-Type': 'text/plain'});
-    if(text === undifined)
+    if(text === undefined)
         res.write("Error");
     else 
         res.write(text);
@@ -697,7 +697,9 @@ function handleSite(res, realpath){
 
 async function handleDownload(res, realpath){
     let filePath = "./files/" + realpath;
-    if (!await fs.existsSync(filePath)){
+    console.log("[handleDownload]filePath:");
+    console.log(filePath);
+    if (!fs.existsSync(filePath)){
         responseError(res, "Download request " + realpath 
         + " was not found on this server.");
         return;
