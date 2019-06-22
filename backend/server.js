@@ -649,8 +649,6 @@ function sendVideoToSlaves(filepath){
 }
 
 function sendInfoToSlaves(info, interviewId){
-    console.log("[sendInfoToSlaves]: slave");
-    console.log(slave);
     for (let slave of slaves){
         let option = {
             host: slave.ip, 
