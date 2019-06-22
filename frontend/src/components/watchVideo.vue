@@ -157,6 +157,7 @@ export default {
     },
     initVideo () {
       // 初始化视频方法
+      let _this = this;
       let myPlayer = this.$video(myVideo, {
         controls: true,
         autoplay: 'muted',
@@ -178,7 +179,7 @@ export default {
         myPlayer.load(vList[curr].url);
         myPlayer.play();
         ++curr;
-        ++this.videoIndex;
+        ++_this.videoIndex;
         if(curr >= vLen){
           isAllEnded = true;
         }

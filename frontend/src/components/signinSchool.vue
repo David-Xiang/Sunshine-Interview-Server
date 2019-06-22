@@ -25,8 +25,8 @@
 <!--            </div>-->
 <!--          </div>-->
           <!-- /.col -->
-          <div class="col-xs-4">
-            <button type="button"  v-on:click="signin" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto">登录</button>
+          <div class="col-xs-12">
+            <button type="button"  v-on:click="signin" class="btn btn-danger btn-block btn-flat pull-right" style="position: center; width: auto">登录</button>
           </div>
           <!-- /.col -->
         </div>
