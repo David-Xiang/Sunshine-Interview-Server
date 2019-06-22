@@ -22,9 +22,9 @@ export function log(arg){
 export function recordHash(arg){
   if (Global.verifier.indexOf(requester)==-1)
     return "permission denied";
-  arg = JSON.parse(arg);
   print("[recordHash] arg");
   print(arg);
+  arg = JSON.parse(arg);
   if (arg.hash == undefined)
     return "failed due to invalid hash";
   if (arg.videoID == undefined){
@@ -35,10 +35,8 @@ export function recordHash(arg){
   if (arg.index == undefined){
     print("[recordHash] failed, no arg.index: ");
     return "failed due to invalid index";
-  } else if (!Number.isInteger(index)){
-    print("[recordHash] failed, arg.index is not an interger: ");
-    return "failed due to invalid index";
   }
+  
   if (Global.videoHash[arg.videoID] == undefined)
     Global.videoHash[arg.videoID] = [];
   var arr = Global.videoHash[arg.videoID];
