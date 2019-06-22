@@ -337,9 +337,14 @@ function getHashsFromChain(result, callback){
         }
         
         console.log("[getHashsFromChain]");
-        let hashs = JSON.parse(dataInfo.result);
-        result.videos.info.map(v => v.hashChain = hashs[v.index]);
-        callback(result);
+
+	try{
+            let hashs = JSON.parse(dataInfo.result);
+            result.videos.info.map(v => v.hashChain = hashs[v.index]);
+        } catch (err) {
+            console.log("\n\n[getHashsFromChain]Error 01!!!!!!!!!\n\n");
+        }	
+	callback(result);
     });
 }
 
