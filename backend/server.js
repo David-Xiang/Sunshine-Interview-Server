@@ -388,13 +388,13 @@ function getHashsFromChain(result, callback){
         
         console.log("[getHashsFromChain]");
 
-	try{
+    try{
             let hashs = JSON.parse(dataInfo.result);
             result.videos.info.map(v => v.hashChain = hashs[v.index]);
         } catch (err) {
             console.log("\n\n[getHashsFromChain]Error 01!!!!!!!!!\n\n");
-        }	
-	callback(result);
+        }    
+    callback(result);
     });
 }
 
@@ -620,7 +620,10 @@ function verifyOneHashFromChain(arg){
 }
 
 function sendVideoToSlaves(filepath){
+    filepath = filepath.substr(7);
     for (let slave of slaves){
+        console.log("[sendVideoToSlaves]: slave");
+        console.log(slave);
         let realpath = "./files/" + filepath;
         fs.exists(realpath, function(exist){
             let option = {
@@ -646,6 +649,8 @@ function sendVideoToSlaves(filepath){
 }
 
 function sendInfoToSlaves(info, interviewId){
+    console.log("[sendInfoToSlaves]: slave");
+    console.log(slave);
     for (let slave of slaves){
         let option = {
             host: slave.ip, 

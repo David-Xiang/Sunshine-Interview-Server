@@ -619,6 +619,9 @@ module.exports = function(host){
 		let content = JSON.stringify(res, tracer_funTrueFalseDate, '\t');
 		if (showJson) console.log(content);
 		
+		let [rows2, fields2] = await connection.execute("SELECT InterviewID FROM interview where InterviewSiteID = " + siteId + " and OrderNumber = '" + order + "';");
+		await this.updateAfterInterviewToDB(collegeId, rows2[0].InterviewID);//new added 20190622
+		
 		await connection.end();
 		if (showDetails) console.log("[End endInterviewToDB('" + siteId + "', '" + order + "')]\n");
 		return content;
@@ -984,10 +987,30 @@ module.exports = function(host){
 			if (showDetails) console.log("[End getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]\n");
 			return content;
 		}
-		if (validateCode == "0000")
+		if (validateCode == "0001")
 		{
 			//console.log("2xx");
 			await this.cleanDataToDB(collegeId);
+			res.backdoor = "Clean schema sunshine_" + collegeId + " successfully!";
+			res.legal = "false";
+			res.type = "interview_info";
+			res.permission = "false";
+			let content = JSON.stringify(res, tracer_Date, '\t');
+			if (showJson) console.log(content);
+			if (showDetails) console.log("[End getInterViewInfoFromDB('" + siteId + "', '" + validateCode + "')]\n");
+			return content;
+		}
+		else if (validateCode == "0000")
+		{
+			//console.log("2xx");
+			await connection.execute("update interviewsite set TeacherSideChosen = 0, StudentSideChosen = 0 where InterviewSiteID = " + siteid + ";");
+			await connection.execute("update interview set Chosen = 0, ChosenTime = null, Skip = 0 where InterviewSiteID = " + siteid + ";");
+			await connection.execute("update interview set BlockString = null, VideoPathString = null where InterviewSiteID = " + siteid + ";");
+			await connection.execute("update interview set StartTimeRecord = null, EndTimeRecord = null where InterviewSiteID = " + siteid + ";");
+			await connection.execute("update teacher_takes set signin = 0;");
+			await connection.execute("update student_takes set signin = 0;");
+			//await connection.execute("update teacher set ImgURL = null, UpdateTime = null;");
+			//await connection.execute("update student set ImgURL = null, UpdateTime = null;");
 			res.backdoor = "Clean schema sunshine_" + collegeId + " successfully!";
 			res.legal = "false";
 			res.type = "interview_info";
@@ -2102,6 +2125,8 @@ module.exports = function(host){
 		else
 		{
 			let [rows, fields] = await connection.execute("SELECT * from userinfo where StudentID = " + studentID + " and StudentName = '" + studentName + "';");
+			console.log("rows = ");
+			console.log(rows);
 			if (!rows[0])//if not exists such account
 			{
 				res.legal = "false";
@@ -2126,10 +2151,15 @@ module.exports = function(host){
 				res.interviewName = rows[0].InterviewName;
 				res.interviewID = rows[0].InterviewID;
 				res.interviewSiteName = rows[0].InterviewSiteName;
+				res.timeDate = rows[0].StartTime.substr(0, 10);
 				res.startTime = rows[0].StartTime;
 				res.endTime = rows[0].EndTime;
 				res.startTimeRecord = rows[0].StartTimeRecord;
 				res.endTimeRecord = rows[0].EndTimeRecord;
+				let p = (rows[0].EndTimeRecord.substr(11, 2) - rows[0].StartTimeRecord.substr(11, 2)) * 3600 + (rows[0].EndTimeRecord.substr(14, 2) - rows[0].StartTimeRecord.substr(14, 2)) * 60 + (rows[0].EndTimeRecord.substr(17, 2) - rows[0].StartTimeRecord.substr(17, 2));
+				console.log(p);
+				res.periodRecord_minute = Math.floor(p / 60);
+				res.periodRecord_second = p % 60;
 				res.blockString = rows[0].BlockString;
 				res.videoPathString = rows[0].VideoPathString;
 				let [rows2, fields2] = await connection.execute("select p.StudentID, q.StudentName from sunshine_" + res.collegeID + ".student_takes as p," +

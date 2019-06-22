@@ -43,11 +43,11 @@ function parsePathString(pathString){
 function handleUpload(req, res, realpath){
     if (req.method.toLowerCase() !== "post")
         responseJson(res, illegalRequest);
-    // console.log("[handleUpload] realpath = " + realpath);
+    console.log("[handleUpload] realpath = " + realpath);
     realpath = "./files" + realpath;
     let targetDir = path.dirname(realpath);
     if (!fs.existsSync(targetDir)) {  
-        // console.log("[handleUpload] creating new dir " + targetDir);
+        console.log("[handleUpload] creating new dir " + targetDir);
         fs.mkdirSync(targetDir);  
     }
     let downUrl = ""; 
@@ -55,7 +55,7 @@ function handleUpload(req, res, realpath){
         downUrl += chunk;
     });
     req.on("end", function(){
-        // console.log("downUrl:" + downUrl);
+        console.log("downUrl:" + downUrl);
         responseJson(res, permission);
         let file = fs.createWriteStream(realpath);
         let request = http.get(downUrl, function(response) {
@@ -73,13 +73,12 @@ function handleInfo(req, res, id){
         req.on("end", function(){
             console.log("[handleInfo] upload info: ");
             console.log(data);
-            responseJson(res, permission);
+            responseText(res, "Slave: upload info successfully");
             let dir = `./files/videos/${id}`;
             if (!fs.existsSync(dir))
                 fs.mkdirSync(dir);
             fs.writeFileSync(`${dir}/info.json`, data);
         });
-        responseText(res, "Slave: upload info successfully");
         return;
     }
 
@@ -138,4 +137,4 @@ let server = http.createServer(function(req, res){
 });
 
 server.listen(port);
-console.log("Slave starts on port" + port);
+console.log("Slave starts on port " + port);
