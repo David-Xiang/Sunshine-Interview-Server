@@ -77,8 +77,7 @@ function handleInfo(req, res, id){
             let dir = `./files/videos/${id}`;
             if (!fs.existsSync(dir))
                 fs.mkdirSync(dir);
-            let file = fs.createWriteStream(`${dir}/info.json`);
-            fs.writeFileSync(videosInfoPath, data);
+            fs.writeFileSync(`${dir}/info.json`, data);
         });
         responseText(res, "Slave: upload info successfully");
         return;
