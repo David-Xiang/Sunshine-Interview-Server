@@ -224,7 +224,10 @@ function responseText(res, textString){
 
 function responseError(res, text){
     res.writeHead(404, {'Content-Type': 'text/plain'});
-    res.write(text);
+    if(text === undifined)
+        res.write("Error");
+    else 
+        res.write(text);
     res.end();
 }
 
@@ -305,7 +308,7 @@ async function handleSearch(req, res){
         dataStr = decodeURI(dataStr);
         let reqJson = JSON.parse(dataStr);
         if (!reqJson.studentID || !reqJson.source){
-            responseError(res);
+            responseError(res, "Params incomplete");
         }
         let data =  await dbconnect.
                           webValidateCertificationFromDB(reqJson.studentID);
