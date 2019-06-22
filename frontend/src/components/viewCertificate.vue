@@ -16,7 +16,7 @@
         <div class="col-xs-12">
           <h2 class="page-header">
             <i class="fa fa-globe"></i> 阳光面试参试证书.
-            <small class="pull-right">Date: 2/10/2019</small>
+<!--            <small class="pull-right">Date: 2/10/2019</small>-->
           </h2>
         </div>
         <!-- /.col -->
@@ -33,9 +33,9 @@
       </div>
       <div class="row no-print">
         <div class="col-xs-12">
-          <a href="invoice-print.html" target="_blank" class="btn btn-default"><i class="fa fa-print"></i> Print</a>
-          <button type="button" class="btn btn-success pull-right"><i class="fa fa-credit-card"></i> Submit Payment
-          </button>
+<!--          <a href="invoice-print.html" target="_blank" class="btn btn-default"><i class="fa fa-print"></i> Print</a>-->
+<!--          <button type="button" class="btn btn-success pull-right"><i class="fa fa-credit-card"></i> Submit Payment-->
+<!--          </button>-->
           <button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;" v-on:click="generatePdf()" >
             <i class="fa fa-download"></i> Generate PDF
           </button>
