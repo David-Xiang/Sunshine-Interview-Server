@@ -103,9 +103,13 @@ export default {
     }
   },
   mounted: function () {
-    this.vList = this.$globalVar.vList
-    this.studentList = this.$globalVar.studentList
-    this.teacherList = this.$globalVar.teacherList
+    let _this = this;
+    // this.vList = this.$globalVar.vList
+    // this.studentList = this.$globalVar.studentList
+    // this.teacherList = this.$globalVar.teacherList
+    this.vList = JSON.parse(_this.$globalVar.getStorage("vUrlList"));
+    this.studentList = JSON.parse(_this.$globalVar.getStorage("vStudentList"));
+    this.teacherList = JSON.parse(_this.$globalVar.getStorage("vTeacherList"));
     this.studentName = this.$globalVar.getStorage('studentName')
     this.exam = this.$globalVar.getStorage('exam')
     this.site = this.$globalVar.getStorage('site')
