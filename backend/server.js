@@ -11,8 +11,14 @@ let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
 let ip = "129.28.159.207";
-let slaveIp = "59.110.174.238";
-let slavePort = 15213;
+let slaves = [
+    {
+        ip: "59.110.174.238",
+        port: 15213
+    },{
+        ip: "59.110.174.238",
+        port: 15214
+    }];
 
 /** 
  * Utilities
@@ -298,6 +304,9 @@ async function handleSearch(req, res){
     req.on('end', async function(){
         dataStr = decodeURI(dataStr);
         let reqJson = JSON.parse(dataStr);
+        if (!reqJson.studentID || !reqJson.source){
+            responseError(res);
+        }
         let data =  await dbconnect.
                           webValidateCertificationFromDB(reqJson.studentID);
         data = JSON.parse(data);
@@ -307,20 +316,56 @@ async function handleSearch(req, res){
         }
 
         //let data = {interviewID: 660001};
-        let videoInfo = JSON.parse(fs.readFileSync("./files/videos/" + 
-            data.interviewID + "/info.json"));
-        console.log("VIDEO INFO");
-        console.log(videoInfo);
-        let arr = videoInfo.info;
-        for (let i = 0; i < arr.length; i++){
-            arr[i].url = `http://${ip}/download${arr[i].url}`;
-        }
-        data.videos = videoInfo;
+        
+        if (reqJson.source == "0"){
+            let videoInfo = JSON.parse(fs.readFileSync("./files/videos/" + 
+                                        data.interviewID + "/info.json"));
+            console.log("VIDEO INFO");
+            console.log(videoInfo);
+            let arr = videoInfo.info;
+            for (let i = 0; i < arr.length; i++){
+                arr[i].url = `http://${ip}/download${arr[i].url}`;
+            }
+            data.videos = videoInfo;
 
-        getHashsFromChain(data, (result)=>{
-            res.write(JSON.stringify(result));
-            res.end();
-        });
+            getHashsFromChain(data, (result)=>{
+                res.write(JSON.stringify(result));
+                res.end();
+            });
+            return;
+        }
+        
+        try{
+            let slave = slaves[parseInt(reqJson.source)-1];
+            let option = {
+                host: slave.ip, 
+                path: `/videoinfo?id=${data.interviewID}`, 
+                port: slave.port,
+                method: 'GET'
+            };
+            let client = http.request(option, function(res1){
+                let msg = '';
+                res1.on('data', function(chunk){
+                    msg += chunk;
+                });
+                res1.on('end', function(){
+                    console.log(msg);
+                    let videoInfo = JSON.parse(msg);
+                    let arr = videoInfo.info;
+                    for (let i = 0; i < arr.length; i++)
+                        arr[i].url = `http://${slave.ip}:${slave.port}"/download${arr[i].url}`;
+                    data.videos = videoInfo;
+                    getHashsFromChain(data, (result)=>{
+                        res.write(JSON.stringify(result));
+                        res.end();
+                    });
+                });
+            });
+            client.end();
+        } catch (err){
+            console.log("[handleSearch] Error1!!!!");
+            responseError(res);
+        }
     });
 }
 
@@ -551,7 +596,8 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             // verify hash from chain
             verifyOneHashFromChain(arg);
 
-            sendVideoToSlave(realpath, hash);
+            sendVideoToSlave(realpath);
+            sendInfoToSlave(videoInfo, interviewId);
         }
         
     });
@@ -568,17 +614,39 @@ function verifyOneHashFromChain(arg){
     });
 }
 
-function sendVideoToSlave(filepath, hash){
-    //console.log("[sendVideoToSlave] filepath is " + filepath);
-    let realpath = "./files/" + filepath;
-    let upUrl = "http://" + slaveIp + "/upload" + filepath;
-    //console.log("[sendVideoToSlave] url is " + upUrl);
-    fs.exists(realpath, function(exist){
+function sendVideoToSlaves(filepath){
+    for (let slave of slaves){
+        let realpath = "./files/" + filepath;
+        fs.exists(realpath, function(exist){
+            let option = {
+                host: slave.ip, 
+                path: '/upload' + filepath, 
+                port: slave.port,
+                method: 'POST',
+            };
+            let client = http.request(option, function(res){
+                let data = '';
+                res.on('data', function(chunk){
+                    data += chunk;
+                });
+                res.on('end', function(){
+                    console.log(data);
+                });
+            });
+            let downUrl = "http://" + ip  + "/download" + filepath;
+            client.write(downUrl);
+            client.end();
+        });
+    }
+}
+
+function sendInfoToSlaves(info, interviewId){
+    for (let slave of slaves){
         let option = {
-            host: slaveIp, 
-            path: '/upload' + filepath, 
-            port: 15213,
-            method: 'POST',
+            host: slave.ip, 
+            path: `/videoinfo?id=${interviewId}`, 
+            port: slave.port,
+            method: 'POST'
         };
         let client = http.request(option, function(res){
             let data = '';
@@ -589,10 +657,9 @@ function sendVideoToSlave(filepath, hash){
                 console.log(data);
             });
         });
-        let downUrl = "http://" + ip  + "/download" + filepath;
-        client.write(downUrl);
+        client.write(JSON.stringify(info));
         client.end();
-    });
+    }
 }
 
 function handleSite(res, realpath){

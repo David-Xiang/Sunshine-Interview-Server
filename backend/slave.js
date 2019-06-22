@@ -64,6 +64,54 @@ function handleUpload(req, res, realpath){
     });
 }
 
+function handleInfo(req, res, id){
+    if (req.method.toLowerCase() === "post"){
+        let data = "";
+        req.on("data", function(chunk){
+            data += chunk;
+        });
+        req.on("end", function(){
+            console.log("[handleInfo] upload info: ");
+            console.log(data);
+            responseJson(res, permission);
+            let dir = `./files/videos/${id}`;
+            if (!fs.existsSync(dir))
+                fs.mkdirSync(dir);
+            let file = fs.createWriteStream(`${dir}/info.json`);
+            fs.writeFileSync(videosInfoPath, data);
+        });
+        responseText(res, "Slave: upload info successfully");
+        return;
+    }
+
+    if (req.method.toLowerCase() === "get"){
+        let realpath = `./files/videos/${id}/info.json`;
+        if (!fs.existsSync(realpath)){
+            responseText(res, "Slave: no such info.json");
+            return;
+        }
+        let data = fs.readFileSync(realpath);
+        res.write(data);
+        res.end();
+    }
+}
+
+async function handleDownload(res, realpath){
+    let filePath = "./files" + realpath;
+    console.log(`download path: ${filePath}`);
+    if (!await fs.existsSync(filePath)){
+        responseText(res, "Download request " + realpath 
+        + " was not found on this server.");
+        return;
+    }
+    res.writeHead(200,{  
+        'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
+        'Content-Disposition': 'attachment; filename=' 
+        + path.basename(filePath) //告诉浏览器这是一个需要下载的文件
+    });
+    fs.createReadStream(filePath).pipe(res);
+}
+
 let server = http.createServer(function(req, res){
     console.log(new Date().toLocaleString() + ": Received request " + req.url);
     
@@ -80,6 +128,12 @@ let server = http.createServer(function(req, res){
             break;
         case "/upload":
             handleUpload(req, res, pathinfo.path);
+            break;
+        case "/videoinfo":
+            handleInfo(req, res, query["id"]);
+            break;
+        case "/download":
+            handleDownload(res, pathinfo.path);
             break;
     }
 });
