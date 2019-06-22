@@ -31,6 +31,14 @@
               <input type="number" class="form-control" v-model="StudentID" placeholder="请填写考官或考生id">
             </div>
           </div>
+          <div class="from-group">
+            <label>视频源</label>
+            <div>
+              <input type="checkbox" checked=true class="checkServer" value="0" v-on:click="checkClick(0)">阳光面试服务器&nbsp;&nbsp;&nbsp;&nbsp;
+              <input type="checkbox" class="checkServer" value="1" v-on:click="checkClick(1)">教育部服务器&nbsp;&nbsp;&nbsp;&nbsp;
+              <input type="checkbox" class="checkServer" value="2" v-on:click="checkClick(2)">高校联盟服务器&nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+          </div>
           <div class="box-footer">
             <!--router-link to="/watch"-->
             <button type="submit" class="btn btn-danger" v-on:click="search()">查询</button>
@@ -50,6 +58,7 @@
     data () {
       return {
         StudentID: '',
+        source:"0",
         CollegeID: '',
         vList: ['http://video.chinanews.com/flv/gg/170918/1.mp4',
           'http://videoclips.chinanews.com/oss/onair/zxw/szuser/9d28c42f4e654ed2baffe606f0b9ef48_37.mp4',
@@ -57,6 +66,20 @@
       }
     },
     methods: {
+      checkClick: function(value) {
+        // console.log("checkbox clicked");
+        let checkboxes = document.getElementsByClassName("checkServer");
+        // console.log(checkboxes);
+        for (let i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i].checked) {
+            checkboxes[i].checked = false;
+            // break;
+          }
+        }
+        checkboxes[value].checked = true;
+        this.source = String(value);
+        console.log(this.source);
+      },
       search () {
         let _this = this;
         $.ajax({
@@ -66,6 +89,7 @@
             studentID: _this.StudentID,
             // password: encryptor.encrypt(_this.password, secretKey, 256),
             collegeID: _this.CollegeID,
+            source:_this.source,
           }),
           async: true,
           success: function (data, stats) {

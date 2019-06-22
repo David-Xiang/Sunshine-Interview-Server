@@ -17,13 +17,13 @@
           <span class="glyphicon glyphicon-lock form-control-feedback"></span>
         </div>
         <div class="row">
-          <div class="col-xs-8">
-            <div class="checkbox icheck">
-              <label>
-                <div class="icheckbox_square-blue" aria-checked="false" aria-disabled="false" style="position: relative;"><input type="checkbox" style="position: absolute; top: -20%; left: -20%; display: block; width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: -20%; left: -20%; display: block; width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div> Remember Me
-              </label>
-            </div>
-          </div>
+<!--          <div class="col-xs-8">-->
+<!--            <div class="checkbox icheck">-->
+<!--              <label>-->
+<!--                <div class="icheckbox_square-blue" aria-checked="false" aria-disabled="false" style="position: relative;"><input type="checkbox" style="position: absolute; top: -20%; left: -20%; display: block; width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: -20%; left: -20%; display: block; width: 140%; height: 140%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div> Remember Me-->
+<!--              </label>-->
+<!--            </div>-->
+<!--          </div>-->
           <!-- /.col -->
           <div class="col-xs-4">
             <button type="button" class="btn btn-danger btn-block btn-flat" style="position: center; width: auto" @click="signin">登录</button>
@@ -31,8 +31,8 @@
           <!-- /.col -->
         </div>
 
-        <a href="#">忘记密码</a><br>
-        <a href="#" class="text-center">注册新账号</a>
+<!--        <a href="#">忘记密码</a><br>-->
+<!--        <a href="#" class="text-center">注册新账号</a>-->
 
       </div>
       <!-- /.login-box-body -->

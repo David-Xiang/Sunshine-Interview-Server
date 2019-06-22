@@ -53,7 +53,10 @@
         <!--        <img src="../../dist/img/credit/paypal2.png" alt="Paypal">-->
         <img :src= wechat height="200">
 
-        <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+        <p class="text-muted well well-sm no-shadow" style="margin-top: 10px; width:400px">
+          关注微信公众号，了解更多考试动向。
+        </p>
+        <p class="text-muted well well-sm" style="margin-top: 10px; width:300px" align="center">
           关注微信公众号，了解更多考试动向。
         </p>
       </div>
