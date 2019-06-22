@@ -3,7 +3,7 @@ let http = require("http");
 let url = require("url");
 let path = require("path");
 let fs = require("fs");
-let port = 2020;
+let port = 80;
 
 let permission = {
     type: "permission",
@@ -102,8 +102,9 @@ async function handleDownload(res, realpath){
         + " was not found on this server.");
         return;
     }
+    res.setHeader("Access-Control-Allow-Origin", "*");
     res.writeHead(200,{  
-        'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件  
+        'Content-Type': 'application/octet-stream', //告诉浏览器这是一个二进制文件
         'Content-Disposition': 'attachment; filename=' 
         + path.basename(filePath) //告诉浏览器这是一个需要下载的文件
     });

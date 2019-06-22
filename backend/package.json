@@ -5,7 +5,8 @@
   "main": "server.js",
   "dependencies": {
     "formidable": "^1.2.1",
-    "mysql2": "^1.6.5"
+    "mysql2": "^1.6.5",
+    "pm2": "^3.5.1"
   },
   "devDependencies": {},
   "scripts": {

@@ -10,16 +10,15 @@ let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
-let ip = "129.28.159.207";
+let ip = "162.105.175.243";
 let slaves = [
     {
-        ip: "59.110.174.238",
-        port: 2020
+        ip: "123.56.150.39",
+        port: 80
+    },{
+       ip: "47.106.38.23",
+       port: 80
     }
-    //,{
-    //    ip: "59.110.174.238",
-    //    port: 15214
-    //}
 ];
 
 /** 
