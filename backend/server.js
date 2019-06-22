@@ -424,7 +424,9 @@ function handleLogin(req, res){
             case "student":
                 info = await dbconnect.webValidateCertificationFromDB(
                     reqJson.password, reqJson.username);
-                responseText(res, info);
+                info = JSON.parse(info);
+                info.videos = JSON.parse(fs.readFileSync(`./files/videos/${info.interviewID}/info.json`));
+                responseJson(res, info);
                 break; 
             case "teacher":
                 info = await dbconnect.webValidateInformationFromDB(
