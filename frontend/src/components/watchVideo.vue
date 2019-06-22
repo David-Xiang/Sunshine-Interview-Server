@@ -31,11 +31,17 @@
           <div class="inner">
           <span class="info-box-icon"><i class="fa fa-bookmark-o"></i></span>
           <div class="info-box-content">
-            <h4>    考试：{{exam}}</h4>
-            <h4>    考场：{{site}}</h4>
-            <h4>    开始时间：{{startTime}}</h4>
-            <h4>    结束时间：{{endTime}}</h4>
-            <h4>    参与者：{{studentName}}</h4>
+            <h5>    考试：{{exam}}</h5>
+            <h5>    考场：{{site}}</h5>
+            <h5>    开始时间：{{startTime}}</h5>
+            <h5>    结束时间：{{endTime}}</h5>
+            <h5>    参与者：{{studentName}}</h5>
+            <h5>    该视频片段的链上哈希值：</h5>
+            <h5>    {{hashChain[videoIndex]}}</h5>
+            <h5>    来自该服务器的视频文件的哈希值：</h5>
+            <h5>    {{hashFile[videoIndex]}}</h5>
+            <h5>    验证结果：{{hashChain[videoIndex] == hashFile[videoIndex] ? "Success" : "Fail"}}</h5>
+            <!--h5>    {{vList[videoIndex].hashChain}}</h5-->
             <!--h4>    当前播放视频片段：第 {{current + 1}} 段</h4-->
           </div>
           </div>
@@ -68,18 +74,19 @@
             </div>
           </div>
           </div>
+          <div class="col-lg-4 col-xs-6">
+            <div class="teacher-list">
+              <h3>本场面试官：</h3>
+              <div  v-for="(teacher, index) in teacherList" :key="teacher.id">
+                <h4> {{teacher.TeacherName}} </h4>
+              </div>
+            </div>
+          </div>
         </div>
     </section>
     <section class="content">
         <div class="row">
-          <div class="col-lg-4 col-xs-6">
-          <div class="teacher-list">
-            <h3>本场面试官：</h3>
-            <div  v-for="(teacher, index) in teacherList" :key="teacher.id">
-              <h4> {{teacher.TeacherName}} </h4>
-            </div>
-          </div>
-          </div>
+
         </div>
     </section>
   </div>
@@ -99,7 +106,11 @@ export default {
       endTime: '',
       studentName: '',
       studentList: [],
-      teacherList: []
+      teacherList: [],
+      videoIndex: 0,
+      hashChain: [],
+      hashFile: [],
+      result:["Success", "Fail"]
     }
   },
   mounted: function () {
@@ -108,6 +119,14 @@ export default {
     // this.studentList = this.$globalVar.studentList
     // this.teacherList = this.$globalVar.teacherList
     this.vList = JSON.parse(_this.$globalVar.getStorage("vUrlList"));
+    console.log(this.vList)
+    for (let v in this.vList){
+      console.log(v);
+      console.log(this.vList[v]);
+      this.hashChain.push(this.vList[v].hashChain);
+      this.hashFile.push(this.vList[v].hashFile);
+    }
+    this.vList.forEach(v => this.hashChain.push(v["hashChain"]));
     this.studentList = JSON.parse(_this.$globalVar.getStorage("vStudentList"));
     this.teacherList = JSON.parse(_this.$globalVar.getStorage("vTeacherList"));
     this.studentName = this.$globalVar.getStorage('studentName')
@@ -131,8 +150,9 @@ export default {
         width: '800px',
       });
       var vList = this.vList;
-      myPlayer.src(vList[index]);
-      myPlayer.load(vList[index]);
+      this.videoIndex = index;
+      myPlayer.src(vList[index].url);
+      myPlayer.load(vList[index].url);
       myPlayer.play();
     },
     initVideo () {
@@ -154,10 +174,11 @@ export default {
         if(isAllEnded){
           return false;
         }
-        myPlayer.src(vList[curr]);
-        myPlayer.load(vList[curr]);
+        myPlayer.src(vList[curr].url);
+        myPlayer.load(vList[curr].url);
         myPlayer.play();
         ++curr;
+        ++this.videoIndex;
         if(curr >= vLen){
           isAllEnded = true;
         }
