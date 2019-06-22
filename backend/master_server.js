@@ -402,7 +402,7 @@ async function handleSiteTable(req, res, CollegeID){
     responseText(res, data);
 }
 
-function handleLogin(req, res){
+async function handleLogin(req, res){
     console.log("[handleLogin]");
     let dataStr = "";
     req.on('data', function (chunk) {
@@ -425,6 +425,8 @@ function handleLogin(req, res){
                     reqJson.password, reqJson.username);
                 info = JSON.parse(info);
                 info.videos = JSON.parse(fs.readFileSync(`./files/videos/${info.interviewID}/info.json`));
+                let urlInfo = await getImgURLFromDB(info.collegeID, info.studentID);
+                info.imageUrl = `http://${ip}/download${item.img_url}`;
                 responseJson(res, info);
                 break; 
             case "teacher":
