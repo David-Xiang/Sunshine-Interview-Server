@@ -423,10 +423,11 @@ async function handleLogin(req, res){
             case "student":
                 info = await dbconnect.webValidateCertificationFromDB(
                     reqJson.password, reqJson.username);
+                    
                 info = JSON.parse(info);
                 info.videos = JSON.parse(fs.readFileSync(`./files/videos/${info.interviewID}/info.json`));
-                let urlInfo = await getImgURLFromDB(info.collegeID, info.studentID);
-                info.imageUrl = `http://${ip}/download${item.img_url}`;
+                let urlInfo = JSON.parse(await dbconnect.getImgURLFromDB(info.collegeID, info.studentID));
+                info.imageUrl = `http://${ip}/download${urlInfo.result}`;
                 responseJson(res, info);
                 break; 
             case "teacher":
