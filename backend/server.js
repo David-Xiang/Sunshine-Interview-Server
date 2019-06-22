@@ -358,7 +358,7 @@ async function handleSearch(req, res){
                     let videoInfo = JSON.parse(msg);
                     let arr = videoInfo.info;
                     for (let i = 0; i < arr.length; i++)
-                        arr[i].url = `http://${slave.ip}:${slave.port}"/download${arr[i].url}`;
+                        arr[i].url = `http://${slave.ip}:${slave.port}/download${arr[i].url}`;
                     data.videos = videoInfo;
                     getHashsFromChain(data, (result)=>{
                         res.write(JSON.stringify(result));
