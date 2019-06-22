@@ -226,7 +226,7 @@ function responseText(res, textString){
 
 function responseError(res, text){
     res.writeHead(404, {'Content-Type': 'text/plain'});
-    if(text === undifined)
+    if(text === undefined)
         res.write("Error");
     else 
         res.write(text);
@@ -358,7 +358,7 @@ async function handleSearch(req, res){
                     let videoInfo = JSON.parse(msg);
                     let arr = videoInfo.info;
                     for (let i = 0; i < arr.length; i++)
-                        arr[i].url = `http://${slave.ip}:${slave.port}"/download${arr[i].url}`;
+                        arr[i].url = `http://${slave.ip}:${slave.port}/download${arr[i].url}`;
                     data.videos = videoInfo;
                     getHashsFromChain(data, (result)=>{
                         res.write(JSON.stringify(result));
@@ -697,7 +697,9 @@ function handleSite(res, realpath){
 
 async function handleDownload(res, realpath){
     let filePath = "./files/" + realpath;
-    if (!await fs.existsSync(filePath)){
+    console.log("[handleDownload]filePath:");
+    console.log(filePath);
+    if (!fs.existsSync(filePath)){
         responseError(res, "Download request " + realpath 
         + " was not found on this server.");
         return;
