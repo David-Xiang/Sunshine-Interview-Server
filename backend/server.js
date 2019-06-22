@@ -15,10 +15,12 @@ let slaves = [
     {
         ip: "59.110.174.238",
         port: 15213
-    },{
-        ip: "59.110.174.238",
-        port: 15214
-    }];
+    }
+    //,{
+    //    ip: "59.110.174.238",
+    //    port: 15214
+    //}
+];
 
 /** 
  * Utilities
@@ -599,8 +601,8 @@ function handleUpload(req, res, realpath, id, collegeId, interviewId){
             // verify hash from chain
             verifyOneHashFromChain(arg);
 
-            sendVideoToSlave(realpath);
-            sendInfoToSlave(videoInfo, interviewId);
+            sendVideoToSlaves(realpath);
+            sendInfoToSlaves(videoInfo, interviewId);
         }
         
     });
