@@ -70,7 +70,7 @@
         console.log("before encrypt:", _this.id);
         console.log("after encrypt", encryptor.encrypt(_this.id, secretKey, 256));
         $.ajax({
-          url: "/apis/login",
+          url: "/apis/apis/login",
           type: "post",
           data: JSON.stringify({
             username: _this.name,

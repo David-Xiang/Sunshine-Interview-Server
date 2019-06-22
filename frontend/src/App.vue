@@ -248,7 +248,7 @@ export default {
       let _this = this;
       _this.$globalVar.clearStorage();
       window.location.reload();
-      _this.$router.replace('/');
+      //_this.$router.replace('/');
     },
     hasLoggedin () {
       let _this = this;

@@ -78,7 +78,7 @@ export default {
       let newLink = document.createElement("a");
       newLink.download = filename;
       newLink.style.display = "none";
-      content = "\ufeff" + content; // 否则用excel打开这个文件中文会乱码
+      content = "\ufeff" + content; // 否则用excel打开这个文件,中文会乱码
       let blob = new Blob([content],  { type: 'text/csv,charset=UTF-8', endings: 'native' });
       newLink.href = window.URL.createObjectURL(blob);
       document.body.appendChild(newLink);
@@ -95,7 +95,7 @@ export default {
     }
 
     $.ajax({
-      url: "/apis/apis/sitetable?collegeid=" + _this.$globalVar.collegeID,
+      url: "/apis/apis/sitetable?collegeid=" + _this.$globalVar.getStorage("collegeID"),
       type: "get",
       //data: JSON.stringify({collegeid:_this.$globalVar.collegeID}),
       success: function (data, stats) {

@@ -53,7 +53,7 @@
           <!-- /.box-body -->
 
           <div class="box-footer">
-            <button type="button" v-on:click="uploadInfo" class="btn btn-danger">提交</button>
+            <button type="button" v-on:click="uploadInfo" v-bind:disabled="disableButton" class="btn btn-danger">提交</button>
           </div>
           <div v-if="textDisplayDisabled">
             <p class="help-block">正在上传中，请不要离开...</p>
@@ -81,7 +81,8 @@ export default {
       userimg: require('../assets/bigbrother.png'),
       sessionid:"",
       uploadPercentage:0,
-      textDisplayDisabled:false
+      textDisplayDisabled:false,
+      disableButton:false
     }
   },
   methods: {
@@ -231,6 +232,7 @@ export default {
             "uploaded": "true"
           });
           _this.sessionid = data["sessionId"];
+          _this.disableButton = true;
           _this.rr();
         },
         error: function (error) {
@@ -283,7 +285,7 @@ export default {
             return;
           }
 
-          res[key]['CollegeID'] = this.$globalVar.collegeID;
+          res[key]['CollegeID'] = this.$globalVar.getStorage("collegeID");
           console.log(res[key]['CollegeID']);
           //console.log(res[key]);
         }

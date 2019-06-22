@@ -60,7 +60,7 @@
       search () {
         let _this = this;
         $.ajax({
-          url: "/apis/search",
+          url: "/apis/apis/search",
           type: "post",
           data: JSON.stringify({
             studentID: _this.StudentID,
@@ -70,6 +70,7 @@
           async: true,
           success: function (data, stats) {
             data = JSON.parse(data);
+            console.log(data);
             console.log("receive video list request:", data);
             if (!data.hasOwnProperty("result")){
               alert("考官/考生ID或学校编码有误，请重试");
@@ -83,7 +84,7 @@
               _this.CollegeID = '';
               return;
             }
-            _this.$globalVar.setvList(data.videos.urls);
+            _this.$globalVar.setvList(data.videos.info);
             _this.$globalVar.setStudentList(data.studentinfo);
             _this.$globalVar.setTeacherList(data.teacherinfo);
             _this.$globalVar.setExam(data.interviewName);
@@ -93,6 +94,9 @@
             _this.$globalVar.setStudentName(data.studentName);
             _this.$globalVar.setStorage(
               {
+                "vUrlList": JSON.stringify(data.videos.info),
+                "vStudentList": JSON.stringify(data.studentinfo),
+                "vTeacherList": JSON.stringify(data.teacherinfo),
                 "studentName": data.studentName,
                 "exam": data.interviewName,
                 "site": data.interviewSiteName,
