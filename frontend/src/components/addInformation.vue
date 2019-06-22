@@ -58,8 +58,8 @@
           <div v-if="textDisplayDisabled">
             <p class="help-block">正在上传中，请不要离开...</p>
           </div>
-          <div>
-            <el-progress :percentage="uploadPercentage"></el-progress>
+          <div style="width:80%">
+            <el-progress :text-inside="true" :stroke-width="20" :percentage="uploadPercentage"></el-progress>
           </div>
 
         </form>
