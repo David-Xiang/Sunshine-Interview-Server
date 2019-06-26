@@ -9,6 +9,12 @@ export default {
   blockID: '',
   studentList: [],
   teacherList: [],
+  min: 0,
+  sec: 0,
+  studentID: -1,
+  total: -1,
+  hashArray: [],
+  imgUrl: '',
   /*
   * we will store following information in sessionStorage:
   * "collegeID" :

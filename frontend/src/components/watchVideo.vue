@@ -37,9 +37,9 @@
             <h5>    结束时间：{{endTime}}</h5>
             <h5>    参与者：{{studentName}}</h5>
             <h5>    该视频片段的链上哈希值：</h5>
-            <h5>    {{hashChain[videoIndex]}}</h5>
+            <h6>    {{hashChain[videoIndex]}}</h6>
             <h5>    来自该服务器的视频文件的哈希值：</h5>
-            <h5>    {{hashFile[videoIndex]}}</h5>
+            <h6>    {{hashFile[videoIndex]}}</h6>
             <h5>    验证结果：{{hashChain[videoIndex] == hashFile[videoIndex] ? "Success" : "Fail"}}</h5>
             <!--h5>    {{vList[videoIndex].hashChain}}</h5-->
             <!--h4>    当前播放视频片段：第 {{current + 1}} 段</h4-->
@@ -169,16 +169,18 @@ export default {
       var curr = 0;
       var isAllEnded = false;//所有视频是否都已播放完成（所有视频只播放一次）
       myPlayer.on("ended", play);
+      let _this = this;
       play();
       function play(e) {
         if(isAllEnded){
           return false;
         }
         myPlayer.src(vList[curr].url);
+        console.log(vList[curr].url);
         myPlayer.load(vList[curr].url);
         myPlayer.play();
         ++curr;
-        ++this.videoIndex;
+        ++_this.videoIndex;
         if(curr >= vLen){
           isAllEnded = true;
         }

@@ -93,6 +93,14 @@
               _this.name = '';
               return;
             }
+            let length = 3;
+            if (data.videos.count < 3) {
+              length = data.videos.count;
+            }
+            let hashArray = ['', '', ''];
+            for (let i = 0; i < length; ++i) {
+              hashArray[i] = data.videos.info[i].hashFile
+            }
 
             // _this.collegeID = data.collegeID;
             // _this.emit(data.collegeID);
@@ -107,10 +115,16 @@
                 "collegeID": data.CollegeID,
                 "loginState": "student",
                 "studentName": data.studentName,
+                "studentID": data.studentID,
                 "exam": data.interviewName,
                 "startTime": data.startTimeRecord,
                 "endTime": data.endTimeRecord,
-                'blockID': data.blockString
+                'blockID': data.blockString,
+                "min": data.periodRecord_minute,
+                "sec": data. periodRecord_second,
+                "total": data.videos.count,
+                "hashArray": JSON.stringify(hashArray),
+                "imgUrl": data.imageUrl
               }
             );
             _this.$router.replace('/view');
