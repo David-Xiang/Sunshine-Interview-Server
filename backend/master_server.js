@@ -10,16 +10,15 @@ let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
-let ip = "129.28.159.207";
+let ip = "162.105.175.243";
 let slaves = [
     {
-        ip: "59.110.174.238",
-        port: 2020
+        ip: "123.56.150.39",
+        port: 80
+    },{
+       ip: "47.106.38.23",
+       port: 80
     }
-    //,{
-    //    ip: "59.110.174.238",
-    //    port: 15214
-    //}
 ];
 
 /** 
@@ -226,7 +225,7 @@ function responseText(res, textString){
 
 function responseError(res, text){
     res.writeHead(404, {'Content-Type': 'text/plain'});
-    if(text === undifined)
+    if(text === undefined)
         res.write("Error");
     else 
         res.write(text);
@@ -358,7 +357,7 @@ async function handleSearch(req, res){
                     let videoInfo = JSON.parse(msg);
                     let arr = videoInfo.info;
                     for (let i = 0; i < arr.length; i++)
-                        arr[i].url = `http://${slave.ip}:${slave.port}"/download${arr[i].url}`;
+                        arr[i].url = `http://${slave.ip}:${slave.port}/download${arr[i].url}`;
                     data.videos = videoInfo;
                     getHashsFromChain(data, (result)=>{
                         res.write(JSON.stringify(result));
@@ -403,7 +402,7 @@ async function handleSiteTable(req, res, CollegeID){
     responseText(res, data);
 }
 
-function handleLogin(req, res){
+async function handleLogin(req, res){
     console.log("[handleLogin]");
     let dataStr = "";
     req.on('data', function (chunk) {
@@ -424,7 +423,11 @@ function handleLogin(req, res){
             case "student":
                 info = await dbconnect.webValidateCertificationFromDB(
                     reqJson.password, reqJson.username);
-                responseText(res, info);
+                info = JSON.parse(info);
+                info.videos = JSON.parse(fs.readFileSync(`./files/videos/${info.interviewID}/info.json`));
+                let urlInfo = await getImgURLFromDB(info.collegeID, info.studentID);
+                info.imageUrl = `http://${ip}/download${item.img_url}`;
+                responseJson(res, info);
                 break; 
             case "teacher":
                 info = await dbconnect.webValidateInformationFromDB(
@@ -649,8 +652,6 @@ function sendVideoToSlaves(filepath){
 }
 
 function sendInfoToSlaves(info, interviewId){
-    console.log("[sendInfoToSlaves]: slave");
-    console.log(slave);
     for (let slave of slaves){
         let option = {
             host: slave.ip, 
@@ -697,7 +698,9 @@ function handleSite(res, realpath){
 
 async function handleDownload(res, realpath){
     let filePath = "./files/" + realpath;
-    if (!await fs.existsSync(filePath)){
+    console.log("[handleDownload]filePath:");
+    console.log(filePath);
+    if (!fs.existsSync(filePath)){
         responseError(res, "Download request " + realpath 
         + " was not found on this server.");
         return;

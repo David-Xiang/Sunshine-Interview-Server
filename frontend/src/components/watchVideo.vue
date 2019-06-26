@@ -157,6 +157,7 @@ export default {
     },
     initVideo () {
       // 初始化视频方法
+      let _this = this;
       let myPlayer = this.$video(myVideo, {
         controls: true,
         autoplay: 'muted',
