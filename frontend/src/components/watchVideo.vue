@@ -170,7 +170,6 @@ export default {
       var curr = 0;
       var isAllEnded = false;//所有视频是否都已播放完成（所有视频只播放一次）
       myPlayer.on("ended", play);
-      let _this = this;
       play();
       function play(e) {
         if(isAllEnded){
