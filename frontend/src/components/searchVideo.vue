@@ -83,7 +83,7 @@
       search () {
         let _this = this;
         $.ajax({
-          url: "/apis/apis/search",
+          url: "/apis/search",
           type: "post",
           data: JSON.stringify({
             studentID: _this.StudentID,
