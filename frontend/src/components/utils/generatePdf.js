@@ -12,7 +12,7 @@ export default{
       }).then(function (canvas) {
         let pageData = canvas.toDataURL('image/jpeg', 1.0)
         let doc = new JsPDF('a3')
-        doc.addImage(pageData, 'JPEG', 20, 20, 325, 225)
+        doc.addImage(pageData, 'JPEG', 20, 10, 190, 225)
         doc.save('certificate.pdf')
       });
     }
