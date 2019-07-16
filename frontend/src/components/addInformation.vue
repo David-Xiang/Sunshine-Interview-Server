@@ -222,7 +222,7 @@ export default {
       _this.textDisplayDisabled = true;
 
       $.ajax({
-        url: "/apis/apis/register",
+        url: "/apis/register",
         type:"post",
         data:JSON.stringify({student:_this.studentInfo, teacher:_this.teacherInfo}),
         success:function (data, stats) {
