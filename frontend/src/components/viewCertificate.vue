@@ -23,8 +23,8 @@
       </div>
     <div class="col-lg-6 col-xs-6" id="certificate">
     <!--div id="certificate"-->
-        <img src="../static/empty.png" style="width: auto; height: 800px;" id="background">
-        <img src=imagePath style="width: auto; height: 100px; position: absolute;top: 150px; left: 400px;" id="img">
+        <img src="../static/empty.jpg" style="width: auto; height: 800px;" id="background">
+        <!--img src=imagePath style="width: auto; height: 100px; position: absolute;top: 150px; left: 400px;" id="img"-->
         <h4 id="name"> 姓 名：{{studentName}} </h4>
         <h4 id="id"> 考 号：{{studentID}} </h4>
         <h4 id="exam"> 考试名称：{{exam}} </h4>
