@@ -16,7 +16,7 @@
           <!-- small box -->
           <div class="small-box bg-aqua">
             <div class="inner">
-              <h4>录入考试信息</h4>
+              <h4>设置考试信息</h4>
 
               <p>教务入口</p>
             </div>

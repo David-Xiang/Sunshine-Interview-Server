@@ -10,14 +10,14 @@ let mime = require("./mime").types;
 let dbmodule = require("./db_connect");
 let dbconnect = new dbmodule(dbhost);
 let chain = require("./chain")();
-let ip = "162.105.175.243";
+let ip = "59.110.174.238";
 let slaves = [
     {
-        ip: "123.56.150.39",
+        ip: "129.28.159.207",
         port: 80
     },{
        ip: "47.106.38.23",
-       port: 80
+       port: 10080
     }
 ];
 
@@ -423,10 +423,11 @@ async function handleLogin(req, res){
             case "student":
                 info = await dbconnect.webValidateCertificationFromDB(
                     reqJson.password, reqJson.username);
+                    
                 info = JSON.parse(info);
                 info.videos = JSON.parse(fs.readFileSync(`./files/videos/${info.interviewID}/info.json`));
-                let urlInfo = await getImgURLFromDB(info.collegeID, info.studentID);
-                info.imageUrl = `http://${ip}/download${item.img_url}`;
+                let urlInfo = JSON.parse(await dbconnect.getImgURLFromDB(info.collegeID, info.studentID));
+                info.imageUrl = `http://${ip}/download${urlInfo.result}`;
                 responseJson(res, info);
                 break; 
             case "teacher":
