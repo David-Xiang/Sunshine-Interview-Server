@@ -67,7 +67,7 @@
         let encryptor = new JSEncrypt();
         let secretKey = "SunshineInterview";
         $.ajax({
-          url: "/apis/apis/login",
+          url: "/apis/login",
           type: "post",
           data: JSON.stringify({
             username: _this.username,
