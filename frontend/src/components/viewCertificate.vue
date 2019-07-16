@@ -78,7 +78,7 @@
         sec: 0,
         total: -1,
         hashArray: [],
-        imagePath: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2967666897,3549949965&fm=15&gp=0.jpg'
+        //imagePath: 'https://ss2.bdstatic.com/70cFvnSh_Q1YnxGkpoWK1HF6hhy/it/u=2967666897,3549949965&fm=15&gp=0.jpg'
       }
     },
     mounted: function () {
@@ -96,8 +96,8 @@
       this.min = this.$globalVar.getStorage('min')
       this.sec = this.$globalVar.getStorage('sec')
       this.total = this.$globalVar.getStorage('total')
-      this.imagePath = this.$globalVar.getStorage('imgUrl')
-      document.getElementById("img").src = this.imagePath
+      // this.imagePath = this.$globalVar.getStorage('imgUrl')
+      // document.getElementById("img").src = this.imagePath
       document.getElementById('name').style.position = 'absolute'
       document.getElementById('name').style.top = '200px'
       document.getElementById('name').style.left = '60px'
