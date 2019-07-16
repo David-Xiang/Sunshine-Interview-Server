@@ -111,7 +111,7 @@ export default {
       if (_this.sessionid === "")
         return;
       $.ajax({
-        url: "/apis/tableprocess?sessionid=" + _this.sessionid,
+        url: "/tableprocess?sessionid=" + _this.sessionid,
         type:"get",
         success: function (data, stats) {
           data = JSON.parse(data);
