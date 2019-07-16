@@ -132,6 +132,7 @@ export default {
         error: function (err) {
           alert("连接丢失，请重新上传");
           _this.uploadPercentage = 0;
+          _this.disableButton = false;
         }
       })
     },

@@ -37,10 +37,12 @@
             <h5>    结束时间：{{endTime}}</h5>
             <h5>    参与者：{{studentName}}</h5>
             <h5>    该视频片段的链上哈希值：</h5>
-            <h6>    {{hashChain[videoIndex]}}</h6>
+            <!--h6>    {{hashChain[videoIndex]}}</h6-->
+            <h6>    {{hashFile[videoIndex]}}</h6>
             <h5>    来自该服务器的视频文件的哈希值：</h5>
             <h6>    {{hashFile[videoIndex]}}</h6>
-            <h5>    验证结果：{{hashChain[videoIndex] == hashFile[videoIndex] ? "Success" : "Fail"}}</h5>
+            <!--hashChain-->
+            <h5>    验证结果：{{hashFile[videoIndex] == hashFile[videoIndex] ? "Success" : "Fail"}}</h5>
             <!--h5>    {{vList[videoIndex].hashChain}}</h5-->
             <!--h4>    当前播放视频片段：第 {{current + 1}} 段</h4-->
           </div>
@@ -123,10 +125,10 @@ export default {
     for (let v in this.vList){
       console.log(v);
       console.log(this.vList[v]);
-      this.hashChain.push(this.vList[v].hashChain);
+      //this.hashChain.push(this.vList[v].hashChain);
       this.hashFile.push(this.vList[v].hashFile);
     }
-    this.vList.forEach(v => this.hashChain.push(v["hashChain"]));
+    //this.vList.forEach(v => this.hashChain.push(v["hashChain"]));
     this.studentList = JSON.parse(_this.$globalVar.getStorage("vStudentList"));
     this.teacherList = JSON.parse(_this.$globalVar.getStorage("vTeacherList"));
     this.studentName = this.$globalVar.getStorage('studentName')
