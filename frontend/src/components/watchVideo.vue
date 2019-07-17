@@ -124,11 +124,12 @@ export default {
     console.log(this.vList)
     for (let v in this.vList){
       console.log(v);
-      console.log(this.vList[v]);
       //this.hashChain.push(this.vList[v].hashChain);
       this.hashFile.push(this.vList[v].hashFile);
     }
-    //this.vList.forEach(v => this.hashChain.push(v["hashChain"]));
+    //this.vList.forEach(v => this.hashFile.push(v["hashFile"]));
+    console.log("hashFileList");
+    console.log(this.hashFile);
     this.studentList = JSON.parse(_this.$globalVar.getStorage("vStudentList"));
     this.teacherList = JSON.parse(_this.$globalVar.getStorage("vTeacherList"));
     this.studentName = this.$globalVar.getStorage('studentName')
