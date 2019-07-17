@@ -378,22 +378,20 @@ function getHashsFromChain(result, callback){
         videoID: result.interviewID, 
     }
     chain.getHashsFromChain(arg, (data)=>{
-        let dataInfo = JSON.parse(data.data);
-        if (dataInfo.status != "Success"){
-            console.log("[getHashsFromChain] WARNING: error in connection with chain");
-            console.log(dataInfo);
-            return;
-        }
-        
-        console.log("[getHashsFromChain]");
-
-    try{
+        try{
+            let dataInfo = JSON.parse(data.data);
+            if (dataInfo.status != "Success"){
+                console.log("[getHashsFromChain] WARNING: error in connection with chain");
+                throw new Error("error in connection with chain");
+            }
+            
+            console.log("[getHashsFromChain]");
             let hashs = JSON.parse(dataInfo.result);
             result.videos.info.map(v => v.hashChain = hashs[v.index]);
         } catch (err) {
             console.log("\n\n[getHashsFromChain]Error 01!!!!!!!!!\n\n");
         }    
-    callback(result);
+        callback(result);
     });
 }
 
