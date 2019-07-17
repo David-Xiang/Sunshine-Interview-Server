@@ -183,7 +183,7 @@ export default {
         myPlayer.load(vList[curr].url);
         myPlayer.play();
         ++curr;
-        ++_this.videoIndex;
+        _this.videoIndex = curr - 1;
         if(curr >= vLen){
           isAllEnded = true;
         }
