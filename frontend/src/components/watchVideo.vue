@@ -153,7 +153,7 @@ export default {
         width: '800px',
       });
       var vList = this.vList;
-      this.videoIndex = index - 1;
+      this.videoIndex = index;
       myPlayer.src(vList[index].url);
       myPlayer.load(vList[index].url);
       myPlayer.play();
