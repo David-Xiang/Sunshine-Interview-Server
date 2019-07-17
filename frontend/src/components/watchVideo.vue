@@ -39,6 +39,8 @@
             <h5>    该视频片段的链上哈希值：</h5>
             <!--h6>    {{hashChain[videoIndex]}}</h6-->
             <h6>    {{hashFile[videoIndex]}}</h6>
+            <h6>{{hashFile}}</h6>
+            <h6>{{videoIndex}}</h6>
             <h5>    来自该服务器的视频文件的哈希值：</h5>
             <h6>    {{hashFile[videoIndex]}}</h6>
             <!--hashChain-->
