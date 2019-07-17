@@ -109,7 +109,7 @@ export default {
       studentName: '',
       studentList: [],
       teacherList: [],
-      videoIndex: 0,
+      videoIndex: -1,
       hashChain: [],
       hashFile: [],
       result:["Success", "Fail"]
