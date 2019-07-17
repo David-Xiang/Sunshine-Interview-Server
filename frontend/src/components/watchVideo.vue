@@ -109,7 +109,7 @@ export default {
       studentName: '',
       studentList: [],
       teacherList: [],
-      videoIndex: -1,
+      videoIndex: 0,
       hashChain: [],
       hashFile: [],
       result:["Success", "Fail"]
@@ -153,7 +153,7 @@ export default {
         width: '800px',
       });
       var vList = this.vList;
-      this.videoIndex = index;
+      this.videoIndex = index - 1;
       myPlayer.src(vList[index].url);
       myPlayer.load(vList[index].url);
       myPlayer.play();
